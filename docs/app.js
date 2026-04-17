@@ -210,8 +210,6 @@ window.applyBulkModality = (modality) => {
     alert(`¡Listo! Se ha aplicado la modalidad ${labels[modality]} a los días seleccionados.`);
 };
 
-};
-
 window.markAllMonthOff = () => {
     if (!confirm('¿Seguro quieres poner TODO el mes como "CERRADO" para empezar a planificar desde cero?')) return;
     
