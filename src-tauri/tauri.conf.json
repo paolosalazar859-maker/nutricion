@@ -6,7 +6,7 @@
     "distDir": "../docs"
   },
   "package": {
-    "productName": "nutrisched",
+    "productName": "OptimizateNutri",
     "version": "0.1.0"
   },
   "tauri": {
@@ -28,7 +28,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.nutrisched.desktop",
+      "identifier": "com.optimizatenutri.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -57,7 +57,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "NutriSched - Agenda de Nutrición",
+        "title": "OptimizateNutri - Tu aliado en Nutrición",
         "width": 800
       }
     ]
