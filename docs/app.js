@@ -94,7 +94,30 @@ function renderPlanningCalendar() {
     const weekly = state.profile.availability?.weekly || ["office", "office", "office", "office", "online", "off", "off"];
 
     let isDragging = false;
-    grid.onmousedown = () => { isDragging = true; };
+    let dragMode = true;
+
+    grid.onmouseleave = () => { isDragging = false; };
+
+    // Function to update visual state without full re-render
+    const updateDayUI = (dateStr, shouldSelect) => {
+        const dayDiv = grid.querySelector(`[data-date="${dateStr}"]`);
+        if (dayDiv) {
+            dayDiv.classList.toggle('selected', shouldSelect);
+        }
+        updateSelectionStatus();
+    };
+
+    const setSelection = (dateStr, shouldSelect) => {
+        const isIncluded = state.selectedPlanningDates.includes(dateStr);
+        if (shouldSelect && !isIncluded) {
+            state.selectedPlanningDates.push(dateStr);
+            updateDayUI(dateStr, true);
+        } else if (!shouldSelect && isIncluded) {
+            state.selectedPlanningDates = state.selectedPlanningDates.filter(id => id !== dateStr);
+            updateDayUI(dateStr, false);
+        }
+    };
+
     window.onmouseup = () => { isDragging = false; };
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -114,18 +137,16 @@ function renderPlanningCalendar() {
         if (modality === 'off') dayDiv.style.borderLeft = '4px solid #94a3b8';
         if (state.selectedPlanningDates.includes(dateStr)) dayDiv.classList.add('selected');
 
-        const toggle = () => {
-            if (state.selectedPlanningDates.includes(dateStr)) {
-                state.selectedPlanningDates = state.selectedPlanningDates.filter(id => id !== dateStr);
-            } else {
-                state.selectedPlanningDates.push(dateStr);
-            }
-            renderPlanningCalendar();
-            updateSelectionStatus();
+        dayDiv.onmousedown = (e) => { 
+            e.preventDefault(); 
+            isDragging = true;
+            dragMode = !state.selectedPlanningDates.includes(dateStr);
+            setSelection(dateStr, dragMode);
         };
 
-        dayDiv.onmousedown = (e) => { e.preventDefault(); toggle(); };
-        dayDiv.onmouseenter = () => { if (isDragging) toggle(); };
+        dayDiv.onmouseenter = () => { 
+            if (isDragging) setSelection(dateStr, dragMode); 
+        };
         
         grid.appendChild(dayDiv);
     }
@@ -159,11 +180,22 @@ function updateSelectionStatus() {
 }
 
 window.applyBulkModality = (modality) => {
+    // Safety check for profile structure
+    if (!state.profile.availability) {
+        state.profile.availability = {
+            weekly: ["office", "office", "office", "office", "online", "off", "off"],
+            blocked: "",
+            overrides: {}
+        };
+    }
+    if (!state.profile.availability.overrides) {
+        state.profile.availability.overrides = {};
+    }
+
     if (state.selectedPlanningDates.length === 0) {
         alert("Primero selecciona algunos días en el calendario.");
         return;
     }
-    if (!state.profile.availability.overrides) state.profile.availability.overrides = {};
     
     state.selectedPlanningDates.forEach(dateStr => {
         state.profile.availability.overrides[dateStr] = modality;
@@ -173,7 +205,49 @@ window.applyBulkModality = (modality) => {
     state.selectedPlanningDates = [];
     renderPlanningCalendar();
     updateSelectionStatus();
-    alert(`Se ha aplicado la modalidad "${modality}" a los días seleccionados.`);
+    
+    const labels = { office: 'Presencial 🏢', online: 'Online 💻', off: 'Cerrado ❌' };
+    alert(`¡Listo! Se ha aplicado la modalidad ${labels[modality]} a los días seleccionados.`);
+};
+
+window.resetMonthPlanning = () => {
+    const p = state.profile;
+    if (!p.availability || !p.availability.overrides) {
+        alert("No hay cambios personalizados que borrar en este mes.");
+        return;
+    }
+
+    if (!confirm('¿Seguro quieres borrar todas las excepciones de este mes y volver a tu horario base?')) return;
+    
+    const year = state.planningDate.getFullYear();
+    const month = state.planningDate.getMonth();
+    const datePrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    
+    // Create a new object excluding the current month's overrides
+    const currentOverrides = p.availability.overrides;
+    const newOverrides = {};
+    let count = 0;
+
+    Object.entries(currentOverrides).forEach(([dateStr, modality]) => {
+        if (dateStr.startsWith(datePrefix)) {
+            count++;
+        } else {
+            newOverrides[dateStr] = modality;
+        }
+    });
+
+    if (count === 0) {
+        alert("No tenías cambios realizados específicamente en este mes.");
+        return;
+    }
+
+    state.profile.availability.overrides = newOverrides;
+    saveProfile();
+    
+    state.selectedPlanningDates = [];
+    renderPlanningCalendar();
+    updateSelectionStatus();
+    alert(`Se han borrado ${count} días personalizados. Ahora el mes sigue tu horario base.`);
 };
 
 window.clearSelection = () => {
