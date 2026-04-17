@@ -130,16 +130,44 @@
                         <!-- Calendario de planificación generado por JS -->
                     </div>
                     
-                    <div class="bulk-actions" style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-main); border-radius: 15px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
-                        <div id="selection-status" style="font-weight: 600; color: var(--primary);">
-                            Sin días seleccionados
+                    <div class="bulk-actions" style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-main); border-radius: 15px; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div id="selection-status" style="font-weight: 600; color: var(--primary);">Sin días seleccionados</div>
+                            <button class="btn" style="border: 1px solid #ddd; padding: 0.5rem 1rem;" onclick="clearSelection()">Deseleccionar</button>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn" style="background: var(--primary); color: white;" onclick="applyBulkModality('office')">🏢 Presencial</button>
-                            <button class="btn" style="background: #3b82f6; color: white;" onclick="applyBulkModality('online')">💻 Online</button>
-                            <button class="btn" style="background: #94a3b8; color: white;" onclick="applyBulkModality('off')">❌ Cerrado</button>
-                            <button class="btn" style="border: 1px solid #ddd;" onclick="clearSelection()">Deseleccionar</button>
-                            <button class="btn" style="border: 1px solid #ef4444; color: #ef4444;" onclick="markAllMonthOff()">Cerrar Todo el Mes</button>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: white; padding: 1rem; border-radius: 12px; border: 1px solid #eee;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 600;">⏰ Horario:</label>
+                                <select id="bulk-start-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
+                                    <option value="08:00">08:00</option>
+                                    <option value="09:00" selected>09:00</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="15:00">15:00</option>
+                                </select>
+                                <span>a</span>
+                                <select id="bulk-end-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00" selected>14:00</option>
+                                    <option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                    <option value="17:00">17:00</option>
+                                    <option value="18:00">18:00</option>
+                                    <option value="19:00">19:00</option>
+                                    <option value="20:00">20:00</option>
+                                    <option value="21:00">21:00</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex: 1; justify-content: flex-end;">
+                                <button class="btn" style="background: var(--primary); color: white;" onclick="applyBulkModality('office')">🏢 Presencial</button>
+                                <button class="btn" style="background: #3b82f6; color: white;" onclick="applyBulkModality('online')">💻 Online</button>
+                                <button class="btn" style="background: #94a3b8; color: white;" onclick="applyBulkModality('off')">❌ Cerrado</button>
+                                <button class="btn" style="border: 1px solid #ef4444; color: #ef4444;" onclick="markAllMonthOff()">Cerrar Todo el Mes</button>
+                            </div>
                         </div>
                     </div>
                 </div>

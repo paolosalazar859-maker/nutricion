@@ -52,6 +52,11 @@
             cursor: pointer;
             text-align: center;
             font-weight: 500;
+            transition: all 0.2s;
+        }
+        .time-btn:hover {
+            border-color: var(--primary);
+            background: rgba(109, 40, 217, 0.05);
         }
         .time-btn.active {
             background: var(--primary);
@@ -93,40 +98,44 @@
             <div class="booking-step">
                 <h3>2. Selecciona la Hora</h3>
                 <div class="time-grid" id="time-grid">
-                    <div class="time-btn" data-time="09:00">09:00</div>
-                    <div class="time-btn" data-time="10:00">10:00</div>
-                    <div class="time-btn" data-time="11:00">11:00</div>
-                    <div class="time-btn" data-time="12:00">12:00</div>
-                    <div class="time-btn" data-time="15:00">15:00</div>
-                    <div class="time-btn" data-time="16:00">16:00</div>
-                    <div class="time-btn" data-time="17:00">17:00</div>
-                    <div class="time-btn" data-time="18:00">18:00</div>
+                    <!-- Los botones de hora se generarán dinámicamente -->
                 </div>
             </div>
 
             <div style="margin-top: 2rem;">
-                <button class="btn btn-primary" style="width: 100%;" id="request-booking">
-                    <i data-lucide="whatsapp" style="vertical-align: middle; margin-right: 5px;"></i>
-                    Solicitar Reserva por WhatsApp
+                <button class="btn btn-primary" id="request-booking" style="width: 100%; padding: 1rem;">
+                    Agendar por WhatsApp
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION: Dynamically read from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Process overrides: "20240416:1,20240417:2" -> { '2024-04-16': '1', '2024-04-17': '2' }
+        // Parse time: "0900" -> "09:00"
+        const formatTime = (raw) => raw.substring(0,2) + ":" + raw.substring(2,4);
+
+        // Process Weekly: "209001400,..."
+        const schRaw = urlParams.get('sch') || "209001400,209001400,209001400,209001400,109001400,009001400,009001400";
+        const weekly = schRaw.split(',').map(item => ({
+            m: item[0],
+            s: formatTime(item.substring(1,5)),
+            e: formatTime(item.substring(5,9))
+        }));
+
+        // Process Overrides: "20240417_m_ss_ee"
         const ovRaw = urlParams.get('ov') || "";
         const overrides = {};
         if (ovRaw) {
             ovRaw.split(',').forEach(pair => {
-                const [date, mod] = pair.split(':');
-                if (date && mod) {
-                    const formattedDate = `${date.substring(0,4)}-${date.substring(4,6)}-${date.substring(6,8)}`;
-                    overrides[formattedDate] = mod;
-                }
+                const [datePart, val] = pair.split('_');
+                const formattedDate = `${datePart.substring(0,4)}-${datePart.substring(4,6)}-${datePart.substring(6,8)}`;
+                overrides[formattedDate] = {
+                    m: val[0],
+                    s: formatTime(val.substring(1,5)),
+                    e: formatTime(val.substring(5,9))
+                };
             });
         }
 
@@ -136,8 +145,8 @@
             whatsapp: urlParams.get('wa') || "56912345678",
             sis: urlParams.get('sis') || "",
             university: urlParams.get('u') || "",
-            schedule: urlParams.get('sch') || "2222100", 
             blocked: (urlParams.get('blk') || "").split(','),
+            weekly: weekly,
             overrides: overrides
         };
 
@@ -148,39 +157,30 @@
         let currentDate = new Date();
 
         function init() {
-            if (config.name) {
-                document.getElementById('prof-name').innerText = config.name;
-                document.getElementById('prof-avatar').innerText = config.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-            }
-            if (config.specialty) document.getElementById('prof-specialty').innerText = config.specialty;
+            document.getElementById('prof-name').innerText = config.name;
+            document.getElementById('prof-avatar').innerText = config.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('prof-specialty').innerText = config.specialty;
             if (config.sis) document.getElementById('prof-sis').innerText = "Reg. SIS: " + config.sis;
             if (config.university) document.getElementById('prof-university').innerText = config.university;
             
             renderCalendar();
+            renderTimeSlots();
             setupEvents();
             lucide.createIcons();
+        }
+
+        function getDayConfig(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            if (config.overrides[dateStr]) return config.overrides[dateStr];
+            let dayIdx = date.getDay();
+            let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+            return config.weekly[schIdx];
         }
 
         function isDayBlocked(date) {
             const dateStr = date.toISOString().split('T')[0];
             if (config.blocked.includes(dateStr)) return true;
-            
-            const modOverride = config.overrides[dateStr];
-            if (modOverride !== undefined) return modOverride === '0';
-
-            let dayIdx = date.getDay();
-            let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
-            return config.schedule[schIdx] === '0';
-        }
-
-        function getModality(date) {
-            const dateStr = date.toISOString().split('T')[0];
-            const modOverride = config.overrides[dateStr];
-            if (modOverride !== undefined) return modOverride;
-
-            let dayIdx = date.getDay();
-            let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
-            return config.schedule[schIdx];
+            return getDayConfig(date).m === '0';
         }
 
         function renderCalendar() {
@@ -221,6 +221,7 @@
                     dayDiv.onclick = () => {
                         selectedDate = d;
                         renderCalendar();
+                        renderTimeSlots();
                         updateModalityUI();
                     };
                 }
@@ -228,27 +229,46 @@
             }
         }
 
+        function renderTimeSlots() {
+            const container = document.getElementById('time-grid');
+            container.innerHTML = '';
+            const dayConfig = getDayConfig(selectedDate);
+            if (dayConfig.m === '0') {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 0.8rem;">Día no laborable</p>';
+                return;
+            }
+
+            const startH = parseInt(dayConfig.s.split(':')[0]);
+            const endH = parseInt(dayConfig.e.split(':')[0]);
+
+            for (let h = startH; h <= endH; h++) {
+                const timeStr = `${String(h).padStart(2, '0')}:00`;
+                const btn = document.createElement('div');
+                btn.className = 'time-btn';
+                if (selectedTime === timeStr) btn.classList.add('active');
+                btn.innerText = timeStr;
+                btn.onclick = () => {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedTime = timeStr;
+                };
+                container.appendChild(btn);
+            }
+        }
+
         function updateModalityUI() {
-            const mod = getModality(selectedDate);
-            const label = MODALITY_LABELS[mod];
+            const dayConfig = getDayConfig(selectedDate);
+            const label = MODALITY_LABELS[dayConfig.m];
             const infoDiv = document.getElementById('modality-info') || document.createElement('div');
             infoDiv.id = 'modality-info';
-            infoDiv.style = "margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-align: center;";
-            infoDiv.innerText = label;
-            document.querySelector('.booking-step').appendChild(infoDiv);
+            infoDiv.style = "margin-top: 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-align: center; background: rgba(109, 40, 217, 0.05); padding: 0.5rem; border-radius: 8px;";
+            infoDiv.innerText = `${label} (${dayConfig.s} - ${dayConfig.e})`;
+            document.getElementById('time-grid').parentNode.insertBefore(infoDiv, document.getElementById('time-grid'));
         }
 
         function setupEvents() {
             document.getElementById('prev-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
             document.getElementById('next-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
-
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.onclick = () => {
-                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    selectedTime = btn.dataset.time;
-                };
-            });
 
             document.getElementById('request-booking').onclick = () => {
                 if (!selectedTime) { alert('Por favor selecciona una hora.'); return; }

@@ -16,9 +16,18 @@ let state = {
         price: "35000",
         bio: "Experto en nutrición deportiva y planes personalizados.",
         availability: {
-            weekly: ["office", "office", "office", "office", "online", "off", "off"],
+            // New structure: { m: 'office', s: '09:00', e: '14:00' }
+            weekly: [
+                {m: 'office', s: '09:00', e: '14:00'},
+                {m: 'office', s: '09:00', e: '14:00'},
+                {m: 'office', s: '09:00', e: '14:00'},
+                {m: 'office', s: '09:00', e: '14:00'},
+                {m: 'online', s: '09:00', e: '14:00'},
+                {m: 'off', s: '09:00', e: '14:00'},
+                {m: 'off', s: '09:00', e: '14:00'}
+            ],
             blocked: "",
-            overrides: {} // Specific days exceptions: { '2024-04-16': 'online' }
+            overrides: {} // Specific days exceptions: { '2024-04-16': {m: 'online', s: '12:00', e: '18:00'} }
         }
     },
     patients: JSON.parse(localStorage.getItem('nutriPatients')) || [],
@@ -91,7 +100,7 @@ function renderPlanningCalendar() {
     }
 
     const overrides = state.profile.availability?.overrides || {};
-    const weekly = state.profile.availability?.weekly || ["office", "office", "office", "office", "online", "off", "off"];
+    const weekly = state.profile.availability?.weekly || [];
 
     let isDragging = false;
     let dragMode = true;
@@ -130,7 +139,8 @@ function renderPlanningCalendar() {
         
         let dayIdx = d.getDay();
         let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
-        const modality = overrides[dateStr] || weekly[schIdx];
+        const config = overrides[dateStr] || weekly[schIdx] || {m: 'off'};
+        const modality = config.m;
         
         if (modality === 'office') dayDiv.style.borderLeft = '4px solid var(--primary)';
         if (modality === 'online') dayDiv.style.borderLeft = '4px solid #3b82f6';
@@ -180,25 +190,23 @@ function updateSelectionStatus() {
 }
 
 window.applyBulkModality = (modality) => {
-    // Safety check for profile structure
-    if (!state.profile.availability) {
-        state.profile.availability = {
-            weekly: ["office", "office", "office", "office", "online", "off", "off"],
-            blocked: "",
-            overrides: {}
-        };
-    }
-    if (!state.profile.availability.overrides) {
-        state.profile.availability.overrides = {};
-    }
+    if (!state.profile.availability) state.profile.availability = { weekly: [], blocked: "", overrides: {} };
+    if (!state.profile.availability.overrides) state.profile.availability.overrides = {};
 
     if (state.selectedPlanningDates.length === 0) {
         alert("Primero selecciona algunos días en el calendario.");
         return;
     }
     
+    const startTime = document.getElementById('bulk-start-time').value;
+    const endTime = document.getElementById('bulk-end-time').value;
+
     state.selectedPlanningDates.forEach(dateStr => {
-        state.profile.availability.overrides[dateStr] = modality;
+        state.profile.availability.overrides[dateStr] = {
+            m: modality,
+            s: startTime,
+            e: endTime
+        };
     });
     
     saveProfile();
@@ -207,18 +215,13 @@ window.applyBulkModality = (modality) => {
     updateSelectionStatus();
     
     const labels = { office: 'Presencial 🏢', online: 'Online 💻', off: 'Cerrado ❌' };
-    alert(`¡Listo! Se ha aplicado la modalidad ${labels[modality]} a los días seleccionados.`);
+    alert(`¡Listo! Se ha aplicado la modalidad ${labels[modality]} (${startTime}-${endTime}) a los días seleccionados.`);
 };
 
 window.markAllMonthOff = () => {
     if (!confirm('¿Seguro quieres poner TODO el mes como "CERRADO" para empezar a planificar desde cero?')) return;
-    
-    if (!state.profile.availability) {
-        state.profile.availability = { weekly: [], blocked: "", overrides: {} };
-    }
-    if (!state.profile.availability.overrides) {
-        state.profile.availability.overrides = {};
-    }
+    if (!state.profile.availability) state.profile.availability = { weekly: [], blocked: "", overrides: {} };
+    if (!state.profile.availability.overrides) state.profile.availability.overrides = {};
 
     const year = state.planningDate.getFullYear();
     const month = state.planningDate.getMonth();
@@ -227,14 +230,14 @@ window.markAllMonthOff = () => {
     for (let day = 1; day <= daysInMonth; day++) {
         const d = new Date(year, month, day);
         const dateStr = formatDate(d);
-        state.profile.availability.overrides[dateStr] = 'off';
+        state.profile.availability.overrides[dateStr] = { m: 'off', s: '09:00', e: '14:00' };
     }
 
     saveProfile();
     state.selectedPlanningDates = [];
     renderPlanningCalendar();
     updateSelectionStatus();
-    alert('Todo el mes se ha marcado como CERRADO. Ahora puedes seleccionar los días que trabajas y asignarles modalidad.');
+    alert('Todo el mes se ha marcado como CERRADO.');
 };
 
 window.clearSelection = () => {
@@ -286,15 +289,27 @@ function renderAvailabilityConfig() {
     const container = document.getElementById('availability-config');
     if (!container) return;
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-    const current = state.profile.availability?.weekly || ["office", "office", "office", "office", "online", "off", "off"];
+    
+    // Migration check
+    if (!Array.isArray(state.profile.availability?.weekly) || typeof state.profile.availability.weekly[0] === 'string') {
+        state.profile.availability.weekly = Array(7).fill({m: 'office', s: '09:00', e: '14:00'});
+    }
+
+    const current = state.profile.availability.weekly;
+    
     container.innerHTML = days.map((day, i) => `
         <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.5);">
             <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">${day}</div>
-            <select class="availability-select" data-index="${i}" style="width: 100%; padding: 0.4rem; border-radius: 8px; border: 1px solid #ddd;">
-                <option value="office" ${current[i] === 'office' ? 'selected' : ''}>🏢 Presencial</option>
-                <option value="online" ${current[i] === 'online' ? 'selected' : ''}>💻 Online</option>
-                <option value="off" ${current[i] === 'off' ? 'selected' : ''}>❌ Cerrado</option>
+            <select class="avail-mod" data-index="${i}" style="width: 100%; padding: 0.4rem; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 0.5rem;">
+                <option value="office" ${current[i].m === 'office' ? 'selected' : ''}>🏢 Presencial</option>
+                <option value="online" ${current[i].m === 'online' ? 'selected' : ''}>💻 Online</option>
+                <option value="off" ${current[i].m === 'off' ? 'selected' : ''}>❌ Cerrado</option>
             </select>
+            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <input type="text" class="avail-start" data-index="${i}" value="${current[i].s || '09:00'}" style="width: 50px; padding: 0.2rem; font-size: 0.8rem; border-radius: 4px; border: 1px solid #ddd;">
+                <span style="font-size: 0.7rem;">a</span>
+                <input type="text" class="avail-end" data-index="${i}" value="${current[i].e || '14:00'}" style="width: 50px; padding: 0.2rem; font-size: 0.8rem; border-radius: 4px; border: 1px solid #ddd;">
+            </div>
         </div>
     `).join('');
 }
@@ -304,15 +319,25 @@ window.generateBookingLink = () => {
     const p = state.profile;
     if (!p.whatsapp) { alert("Por favor, ingresa tu número de WhatsApp."); return; }
     
-    // Weekly
-    const weeklyRaw = Array.from(document.querySelectorAll('.availability-select'))
-        .sort((a,b) => a.dataset.index - b.dataset.index).map(s => s.value);
     const mapping = { off: '0', online: '1', office: '2' };
-    const schEncoded = weeklyRaw.map(v => mapping[v]).join('');
+    
+    // Weekly
+    const weeklyData = daysArray().map(i => {
+        const m = document.querySelector(`.avail-mod[data-index="${i}"]`).value;
+        const s = document.querySelector(`.avail-start[data-index="${i}"]`).value.replace(':', '');
+        const e = document.querySelector(`.avail-end[data-index="${i}"]`).value.replace(':', '');
+        return `${mapping[m]}${s}${e}`;
+    });
+    const schEncoded = weeklyData.join(',');
 
     // Overrides
     const overrides = p.availability?.overrides || {};
-    const ovEncoded = Object.entries(overrides).map(([d, m]) => `${d.replace(/-/g,'')}:${mapping[m]}`).join(',');
+    const ovEncoded = Object.entries(overrides).map(([d, val]) => {
+        const dateKey = d.replace(/-/g,'');
+        const s = val.s.replace(':', '');
+        const e = val.e.replace(':', '');
+        return `${dateKey}_${mapping[val.m]}${s}${e}`;
+    }).join(',');
 
     const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
     const params = new URLSearchParams({
@@ -328,11 +353,13 @@ window.generateBookingLink = () => {
 
     const link = `${baseUrl}?${params.toString()}`;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(link).then(() => alert("¡Planificador Mensual sincronizado! Enlace copiado."));
+        navigator.clipboard.writeText(link).then(() => alert("¡Link de Reserva Copiado! Incluye tus nuevos rangos horarios."));
     } else {
         alert("Enlace: " + link);
     }
 };
+
+function daysArray() { return [0,1,2,3,4,5,6]; }
 
 // --- Standard Calendar Logic ---
 function renderCalendar() {
@@ -446,10 +473,14 @@ function setupEventListeners() {
     const pForm = document.getElementById('profile-form');
     if (pForm) pForm.onsubmit = (e) => {
         e.preventDefault();
-        const weekly = Array.from(document.querySelectorAll('.availability-select')).sort((a,b) => a.dataset.index - b.dataset.index).map(s => s.value);
+        const weekly = daysArray().map(i => ({
+            m: document.querySelector(`.avail-mod[data-index="${i}"]`).value,
+            s: document.querySelector(`.avail-start[data-index="${i}"]`).value,
+            e: document.querySelector(`.avail-end[data-index="${i}"]`).value
+        }));
         state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, sis: document.getElementById('profile-sis').value, university: document.getElementById('profile-university').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: document.getElementById('blocked-dates').value.trim() } };
         saveProfile();
-        alert('Perfil actualizado.');
+        alert('Perfil actualizado con rangos horarios.');
     };
 
     const hForm = document.getElementById('history-form');
