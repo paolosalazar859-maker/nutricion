@@ -51,6 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const rid = btn.getAttribute('data-record-id');
             if (rid) window.exportToPDF(rid, { currentTarget: btn });
         }
+
+        // --- Botones de Cabecera Historial ---
+        if (e.target.closest('.btn-history-export-view')) window.exportViewToPDF();
+        if (e.target.closest('.btn-history-print')) window.print();
+        if (e.target.closest('.btn-history-close')) window.closeHistoryModal();
     });
 
     try {
@@ -1162,7 +1167,19 @@ window.exportViewToPDF = async () => {
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('Reporte_Clinico_OptimizateNutri.pdf');
+        
+        // MOSTRAR EN VISOR INTERNO
+        const pdfDataUri = pdf.output('datauristring');
+        const previewOverlay = document.getElementById('pdf-preview-overlay');
+        const previewIframe = document.getElementById('pdf-preview-iframe');
+        
+        if (previewOverlay && previewIframe) {
+            previewIframe.src = pdfDataUri;
+            previewOverlay.style.display = 'flex';
+        } else {
+            pdf.save('Reporte_Clinico_OptimizateNutri.pdf');
+        }
+
     } catch (error) {
         console.error("PDF Export Error:", error);
         alert("Error al generar PDF: " + error.message);
