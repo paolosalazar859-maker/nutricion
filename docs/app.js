@@ -210,37 +210,6 @@ window.applyBulkModality = (modality) => {
     alert(`¡Listo! Se ha aplicado la modalidad ${labels[modality]} a los días seleccionados.`);
 };
 
-window.resetMonthPlanning = () => {
-    const p = state.profile;
-    if (!p.availability || !p.availability.overrides) {
-        alert("No hay cambios personalizados que borrar en este mes.");
-        return;
-    }
-
-    if (!confirm('¿Seguro quieres borrar todas las excepciones de este mes y volver a tu HORARIO BASE (el habitual de tu perfil)?')) return;
-    
-    const year = state.planningDate.getFullYear();
-    const month = state.planningDate.getMonth();
-    const datePrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-    
-    const newOverrides = {};
-    let count = 0;
-    Object.entries(p.availability.overrides).forEach(([dateStr, modality]) => {
-        if (dateStr.startsWith(datePrefix)) count++;
-        else newOverrides[dateStr] = modality;
-    });
-
-    if (count === 0) {
-        alert("No tenías cambios realizados específicamente en este mes.");
-        return;
-    }
-
-    state.profile.availability.overrides = newOverrides;
-    saveProfile();
-    state.selectedPlanningDates = [];
-    renderPlanningCalendar();
-    updateSelectionStatus();
-    alert(`Se han reseteado ${count} días. Ahora el mes sigue tu configuración habitual.`);
 };
 
 window.markAllMonthOff = () => {
