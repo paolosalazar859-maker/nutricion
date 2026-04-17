@@ -241,7 +241,7 @@
             const startH = parseInt(dayConfig.s.split(':')[0]);
             const endH = parseInt(dayConfig.e.split(':')[0]);
 
-            for (let h = startH; h <= endH; h++) {
+            for (let h = startH; h < endH; h++) {
                 const timeStr = `${String(h).padStart(2, '0')}:00`;
                 const btn = document.createElement('div');
                 btn.className = 'time-btn';
