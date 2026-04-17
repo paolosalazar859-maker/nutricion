@@ -1071,20 +1071,19 @@ window.exportToPDF = async (recordId, event) => {
         doc.line(120, 240, 190, 240);
         doc.text(prof.name, 155, 247, { align: 'center' });
 
-        // MÉTODO DE DESCARGA RESILIENTE: Blob URL
-        console.log("Generando Blob URL para descarga...");
-        const blob = doc.output('blob');
-        const url = URL.createObjectURL(blob);
+        // MÉTODO DE DESCARGA ULTRA-RESILIENTE: Base64
+        console.log("Generando Base64 para descarga...");
+        const pdfBase64 = doc.output('datauristring');
         
         const link = document.createElement('a');
-        link.href = url;
+        link.href = pdfBase64;
         link.download = `Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        console.log("Descarga iniciada.");
+        console.log("Descarga iniciada vía Base64.");
+        alert("¡PDF Generado con éxito! Revisa tu carpeta de Descargas.");
 
     } catch (err) {
         console.error("Error Crítico PDF:", err);
