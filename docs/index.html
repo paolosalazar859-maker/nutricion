@@ -456,6 +456,22 @@
             </form>
         </div>
     </div>
+    <!-- PDF Preview Modal -->
+    <div class="modal-overlay" id="pdf-preview-overlay" style="z-index: 2000;">
+        <div class="modal" style="max-width: 95%; width: 1000px; height: 90vh; display: flex; flex-direction: column; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">Previsualización de Reporte</h3>
+                <button class="btn" style="padding: 0.5rem;" onclick="document.getElementById('pdf-preview-overlay').style.display='none'">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <iframe id="pdf-preview-iframe" style="flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;"></iframe>
+            <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); flex: 1;">Si no ves el botón de descarga arriba, usa <b>Cmd + S</b> para guardar el PDF.</p>
+                <button class="btn" style="background: #f1f5f9;" onclick="document.getElementById('pdf-preview-overlay').style.display='none'">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js?v=6.0"></script>
 </body>
