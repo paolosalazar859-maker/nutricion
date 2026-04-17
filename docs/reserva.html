@@ -121,8 +121,12 @@
             specialty: urlParams.get('s') || "Especialista en Salud",
             whatsapp: urlParams.get('wa') || "56912345678",
             sis: urlParams.get('sis') || "",
-            university: urlParams.get('u') || ""
+            university: urlParams.get('u') || "",
+            schedule: urlParams.get('sch') || "2222100", // Default: Mon-Thu Office, Fri Online, Sat-Sun Off
+            blocked: (urlParams.get('blk') || "").split(',')
         };
+
+        const MODALITY_LABELS = { '0': 'Cerrado', '1': '💻 Atención Online', '2': '🏢 Consulta Presencial' };
 
         let selectedDate = new Date();
         let selectedTime = null;
@@ -140,6 +144,21 @@
             renderCalendar();
             setupEvents();
             lucide.createIcons();
+        }
+
+        function isDayBlocked(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            if (config.blocked.includes(dateStr)) return true;
+            
+            let dayIdx = date.getDay(); // 0 is Sunday, 1 is Monday
+            let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+            return config.schedule[schIdx] === '0';
+        }
+
+        function getModality(date) {
+            let dayIdx = date.getDay();
+            let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+            return config.schedule[schIdx];
         }
 
         function renderCalendar() {
@@ -167,18 +186,34 @@
                 dayDiv.innerText = day;
                 const d = new Date(year, month, day);
                 
-                if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) dayDiv.classList.add('today');
-                if (selectedDate && selectedDate.getDate() === day && selectedDate.getMonth() === month) {
-                    dayDiv.style.borderColor = 'var(--primary)';
-                    dayDiv.style.background = 'rgba(109, 40, 217, 0.1)';
+                if (isDayBlocked(d)) {
+                    dayDiv.classList.add('empty');
+                    dayDiv.style.opacity = '0.3';
+                    dayDiv.style.cursor = 'not-allowed';
+                } else {
+                    if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) dayDiv.classList.add('today');
+                    if (selectedDate && selectedDate.getDate() === day && selectedDate.getMonth() === month) {
+                        dayDiv.style.borderColor = 'var(--primary)';
+                        dayDiv.style.background = 'rgba(109, 40, 217, 0.1)';
+                    }
+                    dayDiv.onclick = () => {
+                        selectedDate = d;
+                        renderCalendar();
+                        updateModalityUI();
+                    };
                 }
-
-                dayDiv.onclick = () => {
-                    selectedDate = d;
-                    renderCalendar();
-                };
                 grid.appendChild(dayDiv);
             }
+        }
+
+        function updateModalityUI() {
+            const mod = getModality(selectedDate);
+            const label = MODALITY_LABELS[mod];
+            const infoDiv = document.getElementById('modality-info') || document.createElement('div');
+            infoDiv.id = 'modality-info';
+            infoDiv.style = "margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-align: center;";
+            infoDiv.innerText = label;
+            document.querySelector('.booking-step').appendChild(infoDiv);
         }
 
         function setupEvents() {

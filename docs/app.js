@@ -12,7 +12,11 @@ let state = {
         university: "",
         address: "Consulta Virtual",
         price: "35000",
-        bio: "Experto en nutrición deportiva y planes personalizados."
+        bio: "Experto en nutrición deportiva y planes personalizados.",
+        availability: {
+            weekly: ["office", "office", "office", "office", "online", "off", "off"], // Mon to Sun
+            blocked: ""
+        }
     },
     patients: JSON.parse(localStorage.getItem('nutriPatients')) || [],
     activePatientId: null
@@ -34,6 +38,7 @@ function init() {
     renderCalendar();
     renderAppointments();
     renderPatients();
+    renderAvailabilityConfig();
     setupEventListeners();
     updateDateDisplay();
     if (window.lucide) lucide.createIcons();
@@ -72,7 +77,8 @@ function loadProfile() {
         'profile-price': p.price || "",
         'profile-email': p.email,
         'profile-address': p.address || "",
-        'profile-bio': p.bio
+        'profile-bio': p.bio,
+        'blocked-dates': p.availability?.blocked || ""
     };
 
     Object.entries(setters).forEach(([id, val]) => {
@@ -93,6 +99,25 @@ function loadProfile() {
     if (welcome) welcome.innerText = `Hola, ${p.name.split(' ')[0]} 👋`;
 }
 
+function renderAvailabilityConfig() {
+    const container = document.getElementById('availability-config');
+    if (!container) return;
+    
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const current = state.profile.availability?.weekly || ["office", "office", "office", "office", "online", "off", "off"];
+    
+    container.innerHTML = days.map((day, i) => `
+        <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.5);">
+            <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">${day}</div>
+            <select class="availability-select" data-index="${i}" style="width: 100%; padding: 0.4rem; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="office" ${current[i] === 'office' ? 'selected' : ''}>🏢 Presencial</option>
+                <option value="online" ${current[i] === 'online' ? 'selected' : ''}>💻 Online</option>
+                <option value="off" ${current[i] === 'off' ? 'selected' : ''}>❌ Cerrado</option>
+            </select>
+        </div>
+    `).join('');
+}
+
 // --- Booking Link Generator ---
 window.generateBookingLink = () => {
     const p = state.profile;
@@ -101,21 +126,27 @@ window.generateBookingLink = () => {
         return;
     }
     
-    // Base URL of your GitHub Pages site
-    const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
+    const weeklyRaw = Array.from(document.querySelectorAll('.availability-select'))
+        .sort((a,b) => a.dataset.index - b.dataset.index)
+        .map(s => s.value);
     
-    // Construct dynamic parameters
+    // Encoding: 0=off, 1=online, 2=office
+    const mapping = { off: '0', online: '1', office: '2' };
+    const schEncoded = weeklyRaw.map(v => mapping[v]).join('');
+
+    const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
     const params = new URLSearchParams({
         wa: p.whatsapp.replace('+', '').replace(/\s/g, ''),
         n: p.name,
         s: p.specialty,
         sis: p.sis || "",
-        u: p.university || ""
+        u: p.university || "",
+        sch: schEncoded,
+        blk: document.getElementById('blocked-dates').value.replace(/\s/g, '')
     });
 
     const fullLink = `${baseUrl}?${params.toString()}`;
     
-    // Fallback for clipboard
     const copyToClipboard = (text) => {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             return navigator.clipboard.writeText(text);
@@ -131,10 +162,9 @@ window.generateBookingLink = () => {
     };
 
     copyToClipboard(fullLink).then(() => {
-        alert("¡Enlace dinámico copiado! Ya tiene tus datos de perfil actuales.");
+        alert("¡Enlace dinámico de reserva copiado! Ya incluye tu disponibilidad actualizada.");
     }).catch(err => {
-        console.error("Copy failed:", err);
-        alert("No se pudo copiar automáticamente. El link es: " + fullLink);
+        alert("No se pudo copiar el link: " + fullLink);
     });
 };
 
@@ -335,6 +365,10 @@ function setupEventListeners() {
     const profForm = document.getElementById('profile-form');
     if (profForm) profForm.onsubmit = (e) => {
         e.preventDefault();
+        const weekly = Array.from(document.querySelectorAll('.availability-select'))
+            .sort((a,b) => a.dataset.index - b.dataset.index)
+            .map(s => s.value);
+
         state.profile = {
             name: document.getElementById('profile-name').value,
             specialty: document.getElementById('profile-specialty').value,
@@ -344,11 +378,15 @@ function setupEventListeners() {
             price: document.getElementById('profile-price').value,
             email: document.getElementById('profile-email').value,
             address: document.getElementById('profile-address').value,
-            bio: document.getElementById('profile-bio').value
+            bio: document.getElementById('profile-bio').value,
+            availability: {
+                weekly: weekly,
+                blocked: document.getElementById('blocked-dates').value.trim()
+            }
         };
         localStorage.setItem('nutriProfile', JSON.stringify(state.profile));
         loadProfile();
-        alert('Perfil profesional actualizado correctamente.');
+        alert('Perfil profesional y disponibilidad actualizados.');
     };
 
     const histForm = document.getElementById('history-form');
