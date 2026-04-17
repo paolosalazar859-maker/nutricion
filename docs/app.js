@@ -44,6 +44,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Delegación de Eventos para Botones PDF
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-export-pdf');
+        if (btn) {
+            const rid = btn.getAttribute('data-record-id');
+            if (rid) window.exportToPDF(rid, { currentTarget: btn });
+        }
+    });
+
     try {
         await init();
         console.log("OptimizateNutri ready (Cloud Sync active)!");
@@ -617,7 +626,7 @@ function renderHistoryRecords() {
                 <div style="flex: 1; font-size: 0.85rem; color: #475569;">
                     ${r.notes ? `<strong>Observaciones:</strong><br>${r.notes}` : ''}
                 </div>
-                <button class="btn" onclick="exportToPDF('${r.id}', event)" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; background: #f1f5f9; color: var(--primary); border: none;">
+                <button class="btn btn-export-pdf" data-record-id="${r.id}" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; background: #f1f5f9; color: var(--primary); border: none;">
                     <i data-lucide="file-text" size="14"></i> PDF
                 </button>
             </div>
@@ -973,18 +982,19 @@ window.exportToPDF = async (recordId, event) => {
 
     try {
         console.log("Iniciando exportación PDF para record:", recordId);
-        
+        // alert("Iniciando generación de PDF..."); // Diagnóstico
+
         // 1. Validar Librería
         if (!window.jspdf) {
-            alert("Error: La librería de PDFs no se ha cargado. Revisa tu conexión a internet.");
+            alert("Error: Librería jsPDF no encontrada. Reinstala o revisa tu conexión.");
             return;
         }
 
         const p = state.patients.find(x => x.id === state.activePatientId);
-        if (!p) throw new Error("Paciente no seleccionado.");
+        if (!p) throw new Error("Paciente no seleccionado en el estado global.");
         
         const r = p.records.find(re => re.id == recordId);
-        if (!r) throw new Error("No se encontró el registro de evolución.");
+        if (!r) throw new Error("No se encontró el registro #" + recordId + " en la ficha del paciente.");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
