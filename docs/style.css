@@ -388,20 +388,24 @@ main {
         position: relative !important;
         display: block !important;
         background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     #patient-history-overlay .modal {
+        position: relative !important;
         max-width: 100% !important;
         width: 100% !important;
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
     /* Header with patient info */
     #history-patient-name {
         font-size: 24pt !important;
         color: black !important;
     }
-    /* Hide everything except clinical data */
+    /* Hide everything except clinical data during print */
     #history-view-list-container h3:first-of-type,
     #history-form,
     #history-view-chart-container,
@@ -410,7 +414,9 @@ main {
     .btn,
     .btn i,
     .nav-menu,
-    [data-lucide] {
+    [data-lucide="printer"],
+    [data-lucide="x"],
+    [data-lucide="file-down"] {
         display: none !important;
     }
     .history-card {
