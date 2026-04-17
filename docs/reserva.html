@@ -84,8 +84,20 @@
             padding: 2rem;
             border-radius: 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .modal-step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-step.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .form-group {
             margin-bottom: 1rem;
@@ -102,6 +114,28 @@
             border-radius: 8px;
             border: 1px solid #ddd;
             font-size: 1rem;
+        }
+        .choice-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            border: 1px solid #eee;
+            background: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+        .choice-btn:hover {
+            border-color: var(--primary);
+            background: rgba(109, 40, 217, 0.03);
+            transform: translateX(5px);
+        }
+        .choice-btn i {
+            color: var(--primary);
         }
     </style>
 </head>
@@ -144,7 +178,7 @@
 
             <div style="margin-top: 2rem;">
                 <button class="btn btn-primary" id="request-booking" style="width: 100%; padding: 1rem;">
-                    Siguiente: Ingresar mis datos
+                    Continuar con la reserva
                 </button>
             </div>
         </div>
@@ -153,30 +187,73 @@
     <!-- Booking Modal -->
     <div class="modal-overlay" id="booking-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1.5rem;">Completa tu reserva</h3>
-            <form id="patient-form">
+            <!-- Step 1: Choice -->
+            <div class="modal-step active" id="step-choice">
+                <h3>¿Ya eres paciente de ${config.name}?</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Dinos si ya tienes una ficha con nosotros para agilizar el proceso.</p>
+                
+                <button class="choice-btn" onclick="goToStep('step-existing')">
+                    <i data-lucide="user-check"></i>
+                    <div>
+                        <div style="font-weight: 700;">Sí, ya soy paciente</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Agendaré usando mi RUT</div>
+                    </div>
+                </button>
+
+                <button class="choice-btn" onclick="goToStep('step-guest')">
+                    <i data-lucide="user-plus"></i>
+                    <div>
+                        <div style="font-weight: 700;">No, soy paciente nuevo</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Completar mis datos por primera vez</div>
+                    </div>
+                </button>
+
+                <button class="btn" onclick="closeModal()" style="width: 100%; margin-top: 1rem;">Cancelar</button>
+            </div>
+
+            <!-- Step 2a: Existing Patient (RUT Search) -->
+            <div class="modal-step" id="step-existing">
+                <h3>Agendar como Paciente</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Ingresa tu RUT para recuperar tus datos.</p>
                 <div class="form-group">
-                    <label>Nombre Completo</label>
-                    <input type="text" id="pat-name" placeholder="Ej: Juan Pérez" required>
+                    <label>RUT (Sin puntos ni guión)</label>
+                    <input type="text" id="ext-rut" placeholder="Ej: 12345678k" required>
                 </div>
-                <div class="form-group">
-                    <label>WhatsApp (con código de país)</label>
-                    <input type="tel" id="pat-phone" placeholder="Ej: 56912345678" required>
-                </div>
-                <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="pat-email" placeholder="juan@ejemplo.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Motivo de consulta (opcional)</label>
-                    <textarea id="pat-notes" placeholder="Breve descripción..."></textarea>
-                </div>
+                <div id="rut-error" style="color: #ef4444; font-size: 0.75rem; margin-bottom: 1rem; display: none;">RUT no encontrado. Por favor intenta de nuevo o continúa como invitado.</div>
                 
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="button" class="btn" id="close-modal" style="flex:1; border: 1px solid #ddd;">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="confirm-booking" style="flex:2;">Confirmar Reserva</button>
+                    <button class="btn" onclick="goToStep('step-choice')" style="flex:1; border: 1px solid #ddd;">Atrás</button>
+                    <button class="btn btn-primary" id="search-rut" style="flex:2;">Buscar y Confirmar</button>
                 </div>
-            </form>
+            </div>
+
+            <!-- Step 2b: Guest Patient (Full Form) -->
+            <div class="modal-step" id="step-guest">
+                <h3>Datos del Paciente Nuevo</h3>
+                <form id="patient-form">
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="pat-name" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp (con código de país)</label>
+                        <input type="tel" id="pat-phone" placeholder="Ej: 56912345678" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="pat-email" placeholder="juan@ejemplo.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>RUT (Opcional por ahora)</label>
+                        <input type="text" id="pat-rut" placeholder="Ej: 12345678k">
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="button" class="btn" onclick="goToStep('step-choice')" style="flex:1; border: 1px solid #ddd;">Atrás</button>
+                        <button type="submit" class="btn btn-primary" id="confirm-booking-guest" style="flex:2;">Confirmar Reserva</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -188,7 +265,7 @@
         const SUPABASE_KEY = "sb_publishable_iP_hKoRhKHo4pRLph9JmJg_9PB0Lqct";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Parse time: "0900" -> "09:00"
+        // Parse time
         const formatTime = (raw) => raw.substring(0,2) + ":" + raw.substring(2,4);
 
         const schRaw = urlParams.get('sch') || "209001400,209001400,209001400,209001400,109001400,009001400,009001400";
@@ -205,9 +282,7 @@
                 const [datePart, val] = pair.split('_');
                 const formattedDate = `${datePart.substring(0,4)}-${datePart.substring(4,6)}-${datePart.substring(6,8)}`;
                 overrides[formattedDate] = {
-                    m: val[0],
-                    s: formatTime(val.substring(1,5)),
-                    e: formatTime(val.substring(5,9))
+                    m: val[0], s: formatTime(val.substring(1,5)), e: formatTime(val.substring(5,9))
                 };
             });
         }
@@ -339,6 +414,51 @@
             document.getElementById('time-grid').parentNode.insertBefore(infoDiv, document.getElementById('time-grid'));
         }
 
+        function goToStep(stepId) {
+            document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('booking-modal').style.display = 'none';
+            goToStep('step-choice');
+        }
+
+        async function processBooking(patientData) {
+            try {
+                // 1. Upsert Patient
+                const { data: pData, error: pError } = await _supabase
+                    .from('patients')
+                    .upsert([patientData], { onConflict: 'phone' })
+                    .select();
+                
+                if (pError) throw pError;
+                const patientId = pData[0].id;
+
+                // 2. Create Appointment
+                const dayConfig = getDayConfig(selectedDate);
+                const appointment = {
+                    patient_id: patientId,
+                    patient_name: pData[0].name,
+                    date: selectedDate.toISOString().split('T')[0],
+                    time: selectedTime,
+                    modality: MODALITY_LABELS[dayConfig.m]
+                };
+
+                const { error: aError } = await _supabase.from('appointments').insert([appointment]);
+                if (aError) throw aError;
+
+                alert("¡Cita agendada con éxito!");
+                const dateStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                const message = encodeURIComponent(`Hola ${config.name}, acabo de agendar una hora para el ${dateStr} a las ${selectedTime}. Mis datos: ${pData[0].name}`);
+                window.open(`https://wa.me/${config.whatsapp}?text=${message}`);
+                closeModal();
+            } catch (err) {
+                console.error(err);
+                alert("Error: " + err.message);
+            }
+        }
+
         function setupEvents() {
             document.getElementById('prev-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
             document.getElementById('next-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
@@ -346,65 +466,36 @@
             document.getElementById('request-booking').onclick = () => {
                 if (!selectedTime) { alert('Por favor selecciona una hora.'); return; }
                 document.getElementById('booking-modal').style.display = 'flex';
+                lucide.createIcons();
             };
 
-            document.getElementById('close-modal').onclick = () => {
-                document.getElementById('booking-modal').style.display = 'none';
+            // Existing Patient Flow
+            document.getElementById('search-rut').onclick = async () => {
+                const rut = document.getElementById('ext-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,'');
+                if (!rut) return;
+
+                const btn = document.getElementById('search-rut');
+                btn.disabled = true; btn.innerText = "Buscando...";
+
+                const { data, error } = await _supabase.from('patients').select('*').eq('rut', rut).maybeSingle();
+                
+                if (data) {
+                    await processBooking({ id: data.id, name: data.name, phone: data.phone, email: data.email, rut: data.rut });
+                } else {
+                    document.getElementById('rut-error').style.display = 'block';
+                    btn.disabled = false; btn.innerText = "Buscar y Confirmar";
+                }
             };
 
+            // Guest Flow
             document.getElementById('patient-form').onsubmit = async (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('confirm-booking');
-                btn.disabled = true;
-                btn.innerText = "Agendando...";
-
-                const patientData = {
+                await processBooking({
                     name: document.getElementById('pat-name').value,
                     phone: document.getElementById('pat-phone').value,
                     email: document.getElementById('pat-email').value,
-                    bio: document.getElementById('pat-notes').value
-                };
-
-                try {
-                    // 1. Upsert Patient
-                    const { data: pData, error: pError } = await _supabase
-                        .from('patients')
-                        .upsert([patientData], { onConflict: 'phone' })
-                        .select();
-                    
-                    if (pError) throw pError;
-                    const patientId = pData[0].id;
-
-                    // 2. Create Appointment
-                    const dayConfig = getDayConfig(selectedDate);
-                    const appointment = {
-                        patient_id: patientId,
-                        patient_name: patientData.name,
-                        date: selectedDate.toISOString().split('T')[0],
-                        time: selectedTime,
-                        modality: MODALITY_LABELS[dayConfig.m]
-                    };
-
-                    const { error: aError } = await _supabase
-                        .from('appointments')
-                        .insert([appointment]);
-
-                    if (aError) throw aError;
-
-                    // 3. Success & WhatsApp
-                    alert("¡Cita agendada con éxito!");
-                    const dateStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-                    const message = encodeURIComponent(`Hola ${config.name}, acabo de agendar una hora mediante la web para el ${dateStr} a las ${selectedTime}. Mis datos: ${patientData.name} (${patientData.phone})`);
-                    window.open(`https://wa.me/${config.whatsapp}?text=${message}`);
-                    
-                    document.getElementById('booking-modal').style.display = 'none';
-                } catch (err) {
-                    console.error(err);
-                    alert("Error al agendar: " + err.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "Confirmar Reserva";
-                }
+                    rut: document.getElementById('pat-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,'')
+                });
             };
         }
 

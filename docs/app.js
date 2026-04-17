@@ -488,7 +488,10 @@ function renderPatients() {
     if (state.patients.length === 0) { list.innerHTML = '<p class="empty-msg">Sin pacientes.</p>'; return; }
     list.innerHTML = state.patients.map(p => `
         <div class="patient-row">
-            <div class="info"><h4>${p.name}</h4><p>${p.email}</p></div>
+            <div class="info">
+                <h4>${p.name}</h4>
+                <p>${p.rut ? 'RUT: ' + p.rut + ' | ' : ''}${p.phone || p.email}</p>
+            </div>
             <div class="btns">
                 <button class="btn" onclick="openHistory('${p.id}')">Historial</button>
                 <button class="btn del" onclick="deletePatient('${p.id}')"><i data-lucide="user-minus" size="18"></i></button>
@@ -500,12 +503,13 @@ function renderPatients() {
 
 window.openAddPatientModal = async () => { 
     const n = prompt("Nombre:"); 
+    const r = prompt("RUT (sin puntos ni guion):");
     const p = prompt("WhatsApp:");
     const e = prompt("Email:"); 
     if (n) { 
-        const { error } = await _supabase.from('patients').upsert([{ name: n, email: e, phone: p }]);
+        const { error } = await _supabase.from('patients').upsert([{ name: n, email: e, phone: p, rut: r }]);
         if (error) alert(error.message);
-        loadInitialData(); // Reload all
+        loadInitialData();
     } 
 };
 
@@ -522,7 +526,7 @@ window.openHistory = async (pid) => {
     if (!p) return; 
     
     document.getElementById('history-patient-name').innerText = p.name; 
-    document.getElementById('history-patient-meta').innerText = p.email || p.phone; 
+    document.getElementById('history-patient-meta').innerText = `${p.rut ? 'RUT: ' + p.rut + ' • ' : ''}${p.email || p.phone}`; 
     
     // Fetch records
     const { data: recs } = await _supabase.from('history_records').select('*').eq('patient_id', pid);
