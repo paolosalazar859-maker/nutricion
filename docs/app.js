@@ -100,8 +100,20 @@ window.generateBookingLink = () => {
         alert("Por favor, ingresa tu número de WhatsApp en el perfil primero.");
         return;
     }
-    const message = encodeURIComponent(`Hola ${p.name}, me gustaría agendar una hora de nutrición.`);
-    const link = `https://wa.me/${p.whatsapp.replace('+', '').replace(/\s/g, '')}?text=${message}`;
+    
+    // Base URL of your GitHub Pages site
+    const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
+    
+    // Construct dynamic parameters
+    const params = new URLSearchParams({
+        wa: p.whatsapp.replace('+', '').replace(/\s/g, ''),
+        n: p.name,
+        s: p.specialty,
+        sis: p.sis || "",
+        u: p.university || ""
+    });
+
+    const fullLink = `${baseUrl}?${params.toString()}`;
     
     // Fallback for clipboard
     const copyToClipboard = (text) => {
@@ -118,11 +130,11 @@ window.generateBookingLink = () => {
         }
     };
 
-    copyToClipboard(link).then(() => {
-        alert("¡Enlace copiado! Ya puedes compartirlo.");
+    copyToClipboard(fullLink).then(() => {
+        alert("¡Enlace dinámico copiado! Ya tiene tus datos de perfil actuales.");
     }).catch(err => {
         console.error("Copy failed:", err);
-        alert("No se pudo copiar automáticamente. El link es: " + link);
+        alert("No se pudo copiar automáticamente. El link es: " + fullLink);
     });
 };
 

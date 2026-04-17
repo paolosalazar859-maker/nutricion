@@ -114,13 +114,14 @@
     </div>
 
     <script>
-        // CONFIGURATION: These values should be filled by the nutritionist
-        const config = JSON.parse(localStorage.getItem('nutriProfile')) || {
-            name: "Paolo Salazar",
-            specialty: "Nutricionista Deportivo",
-            whatsapp: "56912345678",
-            sis: "Reg. SIS 12345",
-            university: "Universidad de Chile"
+        // CONFIGURATION: Dynamically read from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const config = {
+            name: urlParams.get('n') || "Nutricionista",
+            specialty: urlParams.get('s') || "Especialista en Salud",
+            whatsapp: urlParams.get('wa') || "56912345678",
+            sis: urlParams.get('sis') || "",
+            university: urlParams.get('u') || ""
         };
 
         let selectedDate = new Date();
@@ -128,11 +129,13 @@
         let currentDate = new Date();
 
         function init() {
-            document.getElementById('prof-name').innerText = config.name;
-            document.getElementById('prof-specialty').innerText = config.specialty;
-            document.getElementById('prof-avatar').innerText = config.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-            document.getElementById('prof-sis').innerText = config.sis;
-            document.getElementById('prof-university').innerText = config.university;
+            if (config.name) {
+                document.getElementById('prof-name').innerText = config.name;
+                document.getElementById('prof-avatar').innerText = config.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            }
+            if (config.specialty) document.getElementById('prof-specialty').innerText = config.specialty;
+            if (config.sis) document.getElementById('prof-sis').innerText = "Reg. SIS: " + config.sis;
+            if (config.university) document.getElementById('prof-university').innerText = config.university;
             
             renderCalendar();
             setupEvents();
