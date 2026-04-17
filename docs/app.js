@@ -33,6 +33,17 @@ let state = {
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("OptimizateNutri initializing...");
+    
+    // Control de cierre global con ESC
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const historyOverlay = document.getElementById('patient-history-overlay');
+            if (historyOverlay && historyOverlay.style.display === 'flex') {
+                window.closeHistoryModal();
+            }
+        }
+    });
+
     try {
         await init();
         console.log("OptimizateNutri ready (Cloud Sync active)!");
@@ -574,6 +585,7 @@ window.openHistory = async (pid) => {
     }
 
     document.getElementById('patient-history-overlay').style.display = 'flex'; 
+    if (window.lucide) lucide.createIcons();
 };
 
 window.closeHistoryModal = () => { document.getElementById('patient-history-overlay').style.display = 'none'; };
