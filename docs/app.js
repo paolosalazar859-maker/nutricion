@@ -706,25 +706,42 @@ function setupEventListeners() {
 
     if (hForm) hForm.onsubmit = async (e) => {
         e.preventDefault();
+        
+        const getVal = (id) => {
+            const val = document.getElementById(id).value;
+            return val ? parseFloat(val) : null;
+        };
+
         const record = { 
             patient_id: state.activePatientId,
             date: new Date().toISOString().split('T')[0], 
-            weight: document.getElementById('hist-weight').value, 
-            height: document.getElementById('hist-height').value,
-            bmi: document.getElementById('hist-bmi').value,
-            fat_pct: document.getElementById('hist-fat').value, 
-            muscle_pct: document.getElementById('hist-muscle').value,
-            visceral_fat: document.getElementById('hist-visceral').value,
-            waist: document.getElementById('hist-waist').value,
-            hip: document.getElementById('hist-hip').value,
-            water_pct: document.getElementById('hist-water').value,
+            weight: getVal('hist-weight'), 
+            height: getVal('hist-height'),
+            bmi: getVal('hist-bmi'),
+            fat_pct: getVal('hist-fat'), 
+            muscle_pct: getVal('hist-muscle'),
+            visceral_fat: getVal('hist-visceral'),
+            waist: getVal('hist-waist'),
+            hip: getVal('hist-hip'),
+            water_pct: getVal('hist-water'),
             notes: document.getElementById('hist-notes').value 
         };
+
+        if (!record.patient_id) {
+            alert("Error: No se ha seleccionado un paciente válido.");
+            return;
+        }
+
         const { error } = await _supabase.from('history_records').insert([record]);
-        if (error) alert(error.message);
         
-        await window.openHistory(state.activePatientId);
-        hForm.reset();
+        if (error) {
+            console.error("Error saving record:", error);
+            alert("Error al guardar evolución: " + error.message);
+        } else {
+            alert("¡Evolución guardada con éxito!");
+            await window.openHistory(state.activePatientId);
+            hForm.reset();
+        }
     };
 
     const bForm = document.getElementById('booking-form');
@@ -981,8 +998,41 @@ window.exportToPDF = async (recordId) => {
     doc.setTextColor(150, 150, 150);
     doc.text("Generado por OptimizateNutri - Tu aliado en Nutrición", 105, 285, { align: 'center' });
 
-    doc.save(`Reporte_Nutricion_${p.name}_${r.date}.pdf`);
+    doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
+};
+
+// --- Export Full View (Capture Modal) ---
+window.exportViewToPDF = async () => {
+    const modal = document.querySelector('#patient-history-overlay .modal');
+    if (!modal) return;
+    
+    // Ocultar botones e inputs antes de capturar
+    const elementsToHide = modal.querySelectorAll('.btn, #history-form, .nav-menu, [data-lucide="x"]');
+    elementsToHide.forEach(el => el.style.visibility = 'hidden');
+
+    try {
+        const canvas = await html2canvas(modal, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('Reporte_Clinico_OptimizateNutri.pdf');
+    } catch (error) {
+        console.error("PDF Export Error:", error);
+        alert("Error al generar PDF: " + error.message);
+    } finally {
+        elementsToHide.forEach(el => el.style.visibility = 'visible');
+    }
 };
 
 init();
-
