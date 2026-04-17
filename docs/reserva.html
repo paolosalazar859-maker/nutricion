@@ -116,14 +116,29 @@
     <script>
         // CONFIGURATION: Dynamically read from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Process overrides: "20240416:1,20240417:2" -> { '2024-04-16': '1', '2024-04-17': '2' }
+        const ovRaw = urlParams.get('ov') || "";
+        const overrides = {};
+        if (ovRaw) {
+            ovRaw.split(',').forEach(pair => {
+                const [date, mod] = pair.split(':');
+                if (date && mod) {
+                    const formattedDate = `${date.substring(0,4)}-${date.substring(4,6)}-${date.substring(6,8)}`;
+                    overrides[formattedDate] = mod;
+                }
+            });
+        }
+
         const config = {
             name: urlParams.get('n') || "Nutricionista",
             specialty: urlParams.get('s') || "Especialista en Salud",
             whatsapp: urlParams.get('wa') || "56912345678",
             sis: urlParams.get('sis') || "",
             university: urlParams.get('u') || "",
-            schedule: urlParams.get('sch') || "2222100", // Default: Mon-Thu Office, Fri Online, Sat-Sun Off
-            blocked: (urlParams.get('blk') || "").split(',')
+            schedule: urlParams.get('sch') || "2222100", 
+            blocked: (urlParams.get('blk') || "").split(','),
+            overrides: overrides
         };
 
         const MODALITY_LABELS = { '0': 'Cerrado', '1': '💻 Atención Online', '2': '🏢 Consulta Presencial' };
@@ -150,12 +165,19 @@
             const dateStr = date.toISOString().split('T')[0];
             if (config.blocked.includes(dateStr)) return true;
             
-            let dayIdx = date.getDay(); // 0 is Sunday, 1 is Monday
+            const modOverride = config.overrides[dateStr];
+            if (modOverride !== undefined) return modOverride === '0';
+
+            let dayIdx = date.getDay();
             let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
             return config.schedule[schIdx] === '0';
         }
 
         function getModality(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            const modOverride = config.overrides[dateStr];
+            if (modOverride !== undefined) return modOverride;
+
             let dayIdx = date.getDay();
             let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
             return config.schedule[schIdx];
