@@ -1,0 +1,11 @@
+# Rust/Tauri
+/src-tauri/target/
+/src-tauri/Cargo.lock
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+.gemini/
