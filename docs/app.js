@@ -415,7 +415,6 @@ window.generateBookingLink = () => {
         sis: p.sis || "",
         u: p.university || "",
         sch: schEncoded,
-        blk: document.getElementById('blocked-dates').value.replace(/\s/g, ''),
         ov: ovEncoded
     });
 
