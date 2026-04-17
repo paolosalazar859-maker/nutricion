@@ -451,10 +451,8 @@
                 if (aError) throw aError;
 
                 alert("¡Cita agendada con éxito!");
-                const dateStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-                const message = encodeURIComponent(`Hola ${config.name}, acabo de agendar una hora para el ${dateStr} a las ${selectedTime}. Mis datos: ${pData[0].name}`);
-                window.open(`https://wa.me/${config.whatsapp}?text=${message}`);
                 closeModal();
+                location.reload(); // Refresh to show the slot is now taken
             } catch (err) {
                 console.error(err);
                 alert("Error: " + err.message);
