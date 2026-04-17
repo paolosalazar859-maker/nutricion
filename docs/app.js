@@ -69,8 +69,18 @@ function renderPlanningCalendar() {
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     document.getElementById('plan-month-name').innerText = `${monthNames[month]} ${year}`;
 
-    // Headers
-    grid.innerHTML = '<div class="day-name">LU</div><div class="day-name">MA</div><div class="day-name">MI</div><div class="day-name">JU</div><div class="day-name">VI</div><div class="day-name">SA</div><div class="day-name">DO</div>';
+    // Headers with click action to select columns
+    grid.innerHTML = '';
+    const dayNames = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+    dayNames.forEach((name, i) => {
+        const h = document.createElement('div');
+        h.className = 'day-name';
+        h.style.cursor = 'pointer';
+        h.innerText = name;
+        h.title = `Seleccionar todos los ${name} del mes`;
+        h.onclick = () => selectColumn(i);
+        grid.appendChild(h);
+    });
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -83,14 +93,18 @@ function renderPlanningCalendar() {
     const overrides = state.profile.availability?.overrides || {};
     const weekly = state.profile.availability?.weekly || ["office", "office", "office", "office", "online", "off", "off"];
 
+    let isDragging = false;
+    grid.onmousedown = () => { isDragging = true; };
+    window.onmouseup = () => { isDragging = false; };
+
     for (let day = 1; day <= daysInMonth; day++) {
         const d = new Date(year, month, day);
         const dateStr = formatDate(d);
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day planning-day';
         dayDiv.innerText = day;
+        dayDiv.dataset.date = dateStr;
         
-        // Find modality: override > weekly
         let dayIdx = d.getDay();
         let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
         const modality = overrides[dateStr] || weekly[schIdx];
@@ -100,7 +114,7 @@ function renderPlanningCalendar() {
         if (modality === 'off') dayDiv.style.borderLeft = '4px solid #94a3b8';
         if (state.selectedPlanningDates.includes(dateStr)) dayDiv.classList.add('selected');
 
-        dayDiv.onclick = (e) => {
+        const toggle = () => {
             if (state.selectedPlanningDates.includes(dateStr)) {
                 state.selectedPlanningDates = state.selectedPlanningDates.filter(id => id !== dateStr);
             } else {
@@ -109,9 +123,34 @@ function renderPlanningCalendar() {
             renderPlanningCalendar();
             updateSelectionStatus();
         };
+
+        dayDiv.onmousedown = (e) => { e.preventDefault(); toggle(); };
+        dayDiv.onmouseenter = () => { if (isDragging) toggle(); };
+        
         grid.appendChild(dayDiv);
     }
 }
+
+window.selectColumn = (dayIndex) => {
+    const year = state.planningDate.getFullYear();
+    const month = state.planningDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        let currentDayIdx = d.getDay();
+        let schIdx = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
+        
+        if (schIdx === dayIndex) {
+            const dateStr = formatDate(d);
+            if (!state.selectedPlanningDates.includes(dateStr)) {
+                state.selectedPlanningDates.push(dateStr);
+            }
+        }
+    }
+    renderPlanningCalendar();
+    updateSelectionStatus();
+};
 
 function updateSelectionStatus() {
     const el = document.getElementById('selection-status');

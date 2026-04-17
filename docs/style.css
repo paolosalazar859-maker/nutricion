@@ -208,6 +208,20 @@ main {
     border-radius: 50%;
 }
 
+.calendar-day.selected {
+    background: rgba(109, 40, 217, 0.2) !important;
+    border: 2px solid var(--primary) !important;
+    font-weight: 700;
+    transform: scale(0.95);
+    box-shadow: inset 0 0 10px rgba(109, 40, 217, 0.1);
+}
+
+.planning-day:hover {
+    background: rgba(109, 40, 217, 0.1);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
 /* Slots/Appointments */
 .slots-container {
     display: flex;
