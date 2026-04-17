@@ -1071,19 +1071,20 @@ window.exportToPDF = async (recordId, event) => {
         doc.line(120, 240, 190, 240);
         doc.text(prof.name, 155, 247, { align: 'center' });
 
-        // MÉTODO DE DESCARGA ULTRA-RESILIENTE: Base64
-        console.log("Generando Base64 para descarga...");
-        const pdfBase64 = doc.output('datauristring');
+        // MÉTODO DE ENTREGA FINAL: Apertura en Ventana Nueva (Inmune a bloqueos de descarga)
+        console.log("Abriendo PDF en ventana nueva...");
+        const pdfDataUri = doc.output('datauristring');
         
-        const link = document.createElement('a');
-        link.href = pdfBase64;
-        link.download = `Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Abrimos en una ventana nueva para que el usuario pueda guardarlo manualmente
+        const newWindow = window.open();
+        if (newWindow) {
+            newWindow.document.write('<iframe width="100%" height="100%" src="' + pdfDataUri + '"></iframe>');
+        } else {
+            // Si el bloqueador de popups actúa, usamos el guardado directo de jsPDF como último recurso
+            doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
+        }
         
-        console.log("Descarga iniciada vía Base64.");
-        alert("¡PDF Generado con éxito! Revisa tu carpeta de Descargas.");
+        console.log("Proceso de entrega finalizado.");
 
     } catch (err) {
         console.error("Error Crítico PDF:", err);
