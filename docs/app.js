@@ -963,9 +963,13 @@ function renderCharts() {
 
 // --- PDF Export (Individual Record) ---
 window.exportToPDF = async (recordId) => {
-    const p = state.patients.find(x => x.id === state.activePatientId);
-    const r = p.records.find(re => re.id === recordId);
-    if (!p || !r) return;
+    try {
+        const p = state.patients.find(x => x.id === state.activePatientId);
+        if (!p) throw new Error("Paciente no seleccionado.");
+        
+        // Usamos == para permitir comparación entre string y number si fuera necesario
+        const r = p.records.find(re => re.id == recordId);
+        if (!r) throw new Error("No se encontró el registro de evolución.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -1101,6 +1105,10 @@ window.exportToPDF = async (recordId) => {
     doc.text(`Generado el ${new Date().toLocaleString()} por OptimizateNutri Cloud`, 105, 280, { align: 'center' });
 
     doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
+    } catch (err) {
+        console.error("PDF Export Error:", err);
+        alert("No se pudo generar el PDF: " + err.message);
+    }
 };
 
 // --- Export Full View (Capture Modal) ---
