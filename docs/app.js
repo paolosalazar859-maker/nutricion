@@ -718,7 +718,11 @@ function setupEventListeners() {
             return val ? parseFloat(val) : null;
         };
 
-        // Schema-Safe: Usamos nombres de columna consistentes y evitamos duplicados
+        const trySave = async (payload) => {
+            return await _supabase.from('history_records').insert([payload]);
+        };
+
+        // Schema-Safe: Nombres de columnas corregidos según el renderizador
         const record = { 
             patient_id: state.activePatientId,
             date: new Date().toISOString().split('T')[0], 
@@ -726,22 +730,35 @@ function setupEventListeners() {
             height: getVal('hist-height'),
             bmi: getVal('hist-bmi'),
             fat: getVal('hist-fat'), 
-            muscle: getVal('hist-muscle'),
+            muscle_pct: getVal('hist-muscle'),
             visceral_fat: getVal('hist-visceral'),
             waist: getVal('hist-waist'),
             hip: getVal('hist-hip'),
-            water: getVal('hist-water'),
+            water_pct: getVal('hist-water'),
             notes: document.getElementById('hist-notes').value 
         };
 
         try {
             if (!record.patient_id) throw new Error("ID de paciente no encontrado. Reintenta.");
 
-            const { error } = await _supabase.from('history_records').insert([record]);
+            let result = await trySave(record);
             
-            if (error) {
-                console.error("Supabase Save Error:", error);
-                alert(`Error Supabase: ${error.message}\n(Código: ${error.code})`);
+            // Reintento automático si falla por columnas inexistentes
+            if (result.error && (result.error.code.startsWith('P') || result.error.message.includes('column'))) {
+                console.warn("Fallo de esquema, reintentando modo básico...");
+                result = await trySave({
+                    patient_id: record.patient_id,
+                    date: record.date,
+                    weight: record.weight,
+                    height: record.height,
+                    bmi: record.bmi,
+                    notes: record.notes
+                });
+            }
+
+            if (result.error) {
+                console.error("Supabase Save Error:", result.error);
+                alert(`Error Supabase: ${result.error.message}\n(Código: ${result.error.code})`);
             } else {
                 alert("¡Evolución guardada con éxito!");
                 await window.openHistory(state.activePatientId);
