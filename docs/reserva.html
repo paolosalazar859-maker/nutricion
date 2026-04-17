@@ -426,10 +426,10 @@
 
         async function processBooking(patientData) {
             try {
-                // 1. Upsert Patient
+                // 1. Upsert Patient (Optimizado)
                 const { data: pData, error: pError } = await _supabase
                     .from('patients')
-                    .upsert([patientData], { onConflict: 'phone' })
+                    .upsert([patientData])
                     .select();
                 
                 if (pError) throw pError;
