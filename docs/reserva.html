@@ -6,6 +6,7 @@
     <title>Reserva tu Hora - OptimizateNutri</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background-color: var(--bg-main);
@@ -63,6 +64,45 @@
             color: white;
             border-color: var(--primary);
         }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -104,19 +144,53 @@
 
             <div style="margin-top: 2rem;">
                 <button class="btn btn-primary" id="request-booking" style="width: 100%; padding: 1rem;">
-                    Agendar por WhatsApp
+                    Siguiente: Ingresar mis datos
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="booking-modal">
+        <div class="modal">
+            <h3 style="margin-bottom: 1.5rem;">Completa tu reserva</h3>
+            <form id="patient-form">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="pat-name" placeholder="Ej: Juan Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp (con código de país)</label>
+                    <input type="tel" id="pat-phone" placeholder="Ej: 56912345678" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="pat-email" placeholder="juan@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo de consulta (opcional)</label>
+                    <textarea id="pat-notes" placeholder="Breve descripción..."></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" class="btn" id="close-modal" style="flex:1; border: 1px solid #ddd;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="confirm-booking" style="flex:2;">Confirmar Reserva</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         
+        // Supabase Config
+        const SUPABASE_URL = "https://mtrvicvbtasjzfsdegfa.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_iP_hKoRhKHo4pRLph9JmJg_9PB0Lqct";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         // Parse time: "0900" -> "09:00"
         const formatTime = (raw) => raw.substring(0,2) + ":" + raw.substring(2,4);
 
-        // Process Weekly: "209001400,..."
         const schRaw = urlParams.get('sch') || "209001400,209001400,209001400,209001400,109001400,009001400,009001400";
         const weekly = schRaw.split(',').map(item => ({
             m: item[0],
@@ -124,7 +198,6 @@
             e: formatTime(item.substring(5,9))
         }));
 
-        // Process Overrides: "20240417_m_ss_ee"
         const ovRaw = urlParams.get('ov') || "";
         const overrides = {};
         if (ovRaw) {
@@ -150,7 +223,7 @@
             overrides: overrides
         };
 
-        const MODALITY_LABELS = { '0': 'Cerrado', '1': '💻 Atención Online', '2': '🏢 Consulta Presencial' };
+        const MODALITY_LABELS = { '0': 'Cerrado', '1': 'online', '2': 'office' };
 
         let selectedDate = new Date();
         let selectedTime = null;
@@ -258,7 +331,7 @@
 
         function updateModalityUI() {
             const dayConfig = getDayConfig(selectedDate);
-            const label = MODALITY_LABELS[dayConfig.m];
+            const label = dayConfig.m === '1' ? '💻 Atención Online' : '🏢 Consulta Presencial';
             const infoDiv = document.getElementById('modality-info') || document.createElement('div');
             infoDiv.id = 'modality-info';
             infoDiv.style = "margin-top: 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-align: center; background: rgba(109, 40, 217, 0.05); padding: 0.5rem; border-radius: 8px;";
@@ -272,9 +345,66 @@
 
             document.getElementById('request-booking').onclick = () => {
                 if (!selectedTime) { alert('Por favor selecciona una hora.'); return; }
-                const dateStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-                const message = encodeURIComponent(`Hola ${config.name}, me gustaría agendar una hora para el ${dateStr} a las ${selectedTime}.`);
-                window.open(`https://wa.me/${config.whatsapp}?text=${message}`);
+                document.getElementById('booking-modal').style.display = 'flex';
+            };
+
+            document.getElementById('close-modal').onclick = () => {
+                document.getElementById('booking-modal').style.display = 'none';
+            };
+
+            document.getElementById('patient-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('confirm-booking');
+                btn.disabled = true;
+                btn.innerText = "Agendando...";
+
+                const patientData = {
+                    name: document.getElementById('pat-name').value,
+                    phone: document.getElementById('pat-phone').value,
+                    email: document.getElementById('pat-email').value,
+                    bio: document.getElementById('pat-notes').value
+                };
+
+                try {
+                    // 1. Upsert Patient
+                    const { data: pData, error: pError } = await _supabase
+                        .from('patients')
+                        .upsert([patientData], { onConflict: 'phone' })
+                        .select();
+                    
+                    if (pError) throw pError;
+                    const patientId = pData[0].id;
+
+                    // 2. Create Appointment
+                    const dayConfig = getDayConfig(selectedDate);
+                    const appointment = {
+                        patient_id: patientId,
+                        patient_name: patientData.name,
+                        date: selectedDate.toISOString().split('T')[0],
+                        time: selectedTime,
+                        modality: MODALITY_LABELS[dayConfig.m]
+                    };
+
+                    const { error: aError } = await _supabase
+                        .from('appointments')
+                        .insert([appointment]);
+
+                    if (aError) throw aError;
+
+                    // 3. Success & WhatsApp
+                    alert("¡Cita agendada con éxito!");
+                    const dateStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                    const message = encodeURIComponent(`Hola ${config.name}, acabo de agendar una hora mediante la web para el ${dateStr} a las ${selectedTime}. Mis datos: ${patientData.name} (${patientData.phone})`);
+                    window.open(`https://wa.me/${config.whatsapp}?text=${message}`);
+                    
+                    document.getElementById('booking-modal').style.display = 'none';
+                } catch (err) {
+                    console.error(err);
+                    alert("Error al agendar: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "Confirmar Reserva";
+                }
             };
         }
 

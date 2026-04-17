@@ -1,10 +1,15 @@
+// --- Supabase Config ---
+const SUPABASE_URL = "https://mtrvicvbtasjzfsdegfa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_iP_hKoRhKHo4pRLph9JmJg_9PB0Lqct";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // --- Application State ---
 let state = {
     currentDate: new Date(),
     selectedDate: new Date(),
-    planningDate: new Date(), // For the availability tab
-    selectedPlanningDates: [], // Multi-select days
-    appointments: JSON.parse(localStorage.getItem('nutriAppointments')) || [],
+    planningDate: new Date(),
+    selectedPlanningDates: [],
+    appointments: [],
     profile: JSON.parse(localStorage.getItem('nutriProfile')) || {
         name: "Paolo Salazar",
         specialty: "Nutrición Deportiva",
@@ -16,37 +21,31 @@ let state = {
         price: "35000",
         bio: "Experto en nutrición deportiva y planes personalizados.",
         availability: {
-            // New structure: { m: 'office', s: '09:00', e: '14:00' }
-            weekly: [
-                {m: 'office', s: '09:00', e: '14:00'},
-                {m: 'office', s: '09:00', e: '14:00'},
-                {m: 'office', s: '09:00', e: '14:00'},
-                {m: 'office', s: '09:00', e: '14:00'},
-                {m: 'online', s: '09:00', e: '14:00'},
-                {m: 'off', s: '09:00', e: '14:00'},
-                {m: 'off', s: '09:00', e: '14:00'}
-            ],
+            weekly: Array(7).fill({m: 'office', s: '09:00', e: '14:00'}),
             blocked: "",
-            overrides: {} // Specific days exceptions: { '2024-04-16': {m: 'online', s: '12:00', e: '18:00'} }
+            overrides: {}
         }
     },
-    patients: JSON.parse(localStorage.getItem('nutriPatients')) || [],
+    patients: [],
     activePatientId: null
 };
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("NutriSched initializing...");
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("OptimizateNutri initializing...");
     try {
-        init();
-        console.log("NutriSched ready!");
+        await init();
+        console.log("OptimizateNutri ready (Cloud Sync active)!");
     } catch (e) {
         console.error("Initialization failed:", e);
     }
 });
 
-function init() {
+async function init() {
     loadProfile();
+    await loadInitialData();
+    setupRealtime();
+    
     renderCalendar();
     renderAppointments();
     renderPatients();
@@ -499,22 +498,99 @@ function renderPatients() {
     if (window.lucide) lucide.createIcons();
 }
 
-window.openAddPatientModal = () => { const n = prompt("Nombre:"); const e = prompt("Email:"); if (n && e) { state.patients.push({ id: Date.now().toString(), name: n, email: e, records: [] }); savePatients(); renderPatients(); } };
-window.deletePatient = (id) => { if (confirm('¿Eliminar?')) { state.patients = state.patients.filter(p => p.id !== id); savePatients(); renderPatients(); } };
-window.openHistory = (pid) => { state.activePatientId = pid; const p = state.patients.find(x => x.id === pid); if (!p) return; document.getElementById('history-patient-name').innerText = p.name; document.getElementById('history-patient-meta').innerText = p.email; renderHistoryRecords(); document.getElementById('patient-history-overlay').style.display = 'flex'; };
+window.openAddPatientModal = async () => { 
+    const n = prompt("Nombre:"); 
+    const p = prompt("WhatsApp:");
+    const e = prompt("Email:"); 
+    if (n) { 
+        const { error } = await _supabase.from('patients').upsert([{ name: n, email: e, phone: p }]);
+        if (error) alert(error.message);
+        loadInitialData(); // Reload all
+    } 
+};
+
+window.deletePatient = async (id) => { 
+    if (confirm('¿Eliminar paciente y todas sus citas?')) { 
+        await _supabase.from('patients').delete().eq('id', id);
+        loadInitialData();
+    } 
+};
+
+window.openHistory = async (pid) => { 
+    state.activePatientId = pid; 
+    const p = state.patients.find(x => x.id === pid); 
+    if (!p) return; 
+    
+    document.getElementById('history-patient-name').innerText = p.name; 
+    document.getElementById('history-patient-meta').innerText = p.email || p.phone; 
+    
+    // Fetch records
+    const { data: recs } = await _supabase.from('history_records').select('*').eq('patient_id', pid);
+    p.records = recs || [];
+    
+    renderHistoryRecords(); 
+    document.getElementById('patient-history-overlay').style.display = 'flex'; 
+};
+
 window.closeHistoryModal = () => { document.getElementById('patient-history-overlay').style.display = 'none'; };
+
 function renderHistoryRecords() {
     const p = state.patients.find(x => x.id === state.activePatientId);
     const list = document.getElementById('history-records-list');
     if (!list || !p) return;
-    if (p.records.length === 0) { list.innerHTML = '<p class="empty-msg">Sin registros.</p>'; return; }
+    if (!p.records || p.records.length === 0) { list.innerHTML = '<p class="empty-msg">Sin registros previos.</p>'; return; }
     list.innerHTML = p.records.sort((a,b) => b.date.localeCompare(a.date)).map(r => `
         <div class="history-card">
             <div class="date">${r.date}</div>
             <div class="stats">Peso: ${r.weight}kg | Grasa: ${r.fat || '-'}%</div>
-            <p>${r.notes}</p>
+            <p>${r.notes || ''}</p>
         </div>
     `).join('');
+}
+
+// --- Data Source Sync ---
+async function loadInitialData() {
+    const { data: apps } = await _supabase.from('appointments').select('*');
+    const { data: pats } = await _supabase.from('patients').select('*');
+    
+    state.appointments = apps || [];
+    state.patients = (pats || []).map(p => ({ ...p, records: [] })); // We fetch records on demand
+
+    // Migrate LocalStorage if cloud is empty
+    if (state.appointments.length === 0 && localStorage.getItem('nutriAppointments')) {
+        migrateToCloud();
+    }
+}
+
+function setupRealtime() {
+    _supabase.channel('custom-all-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
+        console.log('Realtime Update:', payload);
+        handleExternalChange(payload);
+    })
+    .subscribe();
+}
+
+async function handleExternalChange(payload) {
+    if (payload.eventType === 'INSERT') {
+        state.appointments.push(payload.new);
+    } else if (payload.eventType === 'DELETE') {
+        state.appointments = state.appointments.filter(a => a.id !== payload.old.id);
+    } else if (payload.eventType === 'UPDATE') {
+        const idx = state.appointments.findIndex(a => a.id === payload.new.id);
+        if (idx !== -1) state.appointments[idx] = payload.new;
+    }
+    renderCalendar();
+    renderAppointments();
+}
+
+async function migrateToCloud() {
+    const localApps = JSON.parse(localStorage.getItem('nutriAppointments')) || [];
+    if (localApps.length > 0 && confirm("¿Deseas migrar tus citas locales a la nube para que sean visibles desde la web?")) {
+        const toUpload = localApps.map(a => ({ patient_name: a.patient, date: a.date, time: a.time, modality: a.type }));
+        await _supabase.from('appointments').insert(toUpload);
+        loadInitialData();
+    }
 }
 
 // --- Global Event Listeners ---
@@ -522,24 +598,45 @@ function setupEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => { item.onclick = () => showView(item.dataset.view); });
     const addClick = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
     
-    // Dashboard Months
     addClick('prev-month', () => { state.currentDate.setMonth(state.currentDate.getMonth() - 1); renderCalendar(); });
     addClick('next-month', () => { state.currentDate.setMonth(state.currentDate.getMonth() + 1); renderCalendar(); });
-    
-    // Planning Months
     addClick('plan-prev-month', () => { state.planningDate.setMonth(state.planningDate.getMonth() - 1); renderPlanningCalendar(); });
     addClick('plan-next-month', () => { state.planningDate.setMonth(state.planningDate.getMonth() + 1); renderPlanningCalendar(); });
 
     addClick('open-booking', () => { const i = document.getElementById('appointment-date'); if (i) i.value = formatDate(state.selectedDate); const m = document.getElementById('modal-overlay'); if (m) m.style.display = 'flex'; });
     addClick('close-modal', () => { const m = document.getElementById('modal-overlay'); if (m) m.style.display = 'none'; });
 
-    const bForm = document.getElementById('booking-form');
-    if (bForm) bForm.onsubmit = (e) => {
+    const hForm = document.getElementById('history-form');
+    if (hForm) hForm.onsubmit = async (e) => {
         e.preventDefault();
-        state.appointments.push({ id: Date.now().toString(), patient: document.getElementById('patient-name').value, date: document.getElementById('appointment-date').value, time: document.getElementById('appointment-time').value, type: document.getElementById('appointment-type').value });
-        saveAppointments();
+        const record = { 
+            patient_id: state.activePatientId,
+            date: new Date().toISOString().split('T')[0], 
+            weight: document.getElementById('hist-weight').value, 
+            fat: document.getElementById('hist-fat').value, 
+            notes: document.getElementById('hist-notes').value 
+        };
+        const { error } = await _supabase.from('history_records').insert([record]);
+        if (error) alert(error.message);
+        
+        // Refresh local state and UI
+        await window.openHistory(state.activePatientId);
+        hForm.reset();
+    };
+
+    const bForm = document.getElementById('booking-form');
+    if (bForm) bForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const app = { 
+            patient_name: document.getElementById('patient-name').value, 
+            date: document.getElementById('appointment-date').value, 
+            time: document.getElementById('appointment-time').value, 
+            modality: document.getElementById('appointment-type').value 
+        };
+        const { error } = await _supabase.from('appointments').insert([app]);
+        if (error) alert(error.message);
         document.getElementById('modal-overlay').style.display = 'none';
-        bForm.reset(); renderCalendar(); renderAppointments();
+        bForm.reset();
     };
 
     const pForm = document.getElementById('profile-form');
@@ -552,24 +649,19 @@ function setupEventListeners() {
         }));
         state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, sis: document.getElementById('profile-sis').value, university: document.getElementById('profile-university').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: "" } };
         saveProfile();
-        alert('Perfil actualizado con rangos horarios.');
-    };
-
-    const hForm = document.getElementById('history-form');
-    if (hForm) hForm.onsubmit = (e) => {
-        e.preventDefault();
-        const p = state.patients.find(x => x.id === state.activePatientId);
-        if (!p) return;
-        p.records.push({ id: Date.now().toString(), date: new Date().toISOString().split('T')[0], weight: document.getElementById('hist-weight').value, fat: document.getElementById('hist-fat').value, notes: document.getElementById('hist-notes').value });
-        savePatients(); renderHistoryRecords(); hForm.reset();
+        alert('Perfil actualizado.');
     };
 }
 
 // --- Helpers ---
 function formatDate(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
-function saveAppointments() { localStorage.setItem('nutriAppointments', JSON.stringify(state.appointments)); }
-function savePatients() { localStorage.setItem('nutriPatients', JSON.stringify(state.patients)); }
-window.deleteAppointment = (id) => { if (confirm('¿Eliminar?')) { state.appointments = state.appointments.filter(a => a.id !== id); saveAppointments(); renderCalendar(); renderAppointments(); } };
+function saveProfile() { localStorage.setItem('nutriProfile', JSON.stringify(state.profile)); }
+
+window.deleteAppointment = async (id) => { 
+    if (confirm('¿Eliminar cita?')) { 
+        await _supabase.from('appointments').delete().eq('id', id);
+    } 
+};
 function updateDateDisplay() { const el = document.getElementById('selected-date-text'); if (el) el.innerText = state.selectedDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }
 
 init();
