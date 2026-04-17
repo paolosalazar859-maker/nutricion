@@ -2,8 +2,8 @@
   "build": {
     "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "devPath": "../ui",
-    "distDir": "../ui"
+    "devPath": "../docs",
+    "distDir": "../docs"
   },
   "package": {
     "productName": "nutrisched",
