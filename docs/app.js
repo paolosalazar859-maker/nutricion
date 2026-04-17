@@ -629,16 +629,18 @@ async function loadInitialData() {
 }
 
 function setupRealtime() {
+    if (state.realtimeSubscribed) return;
+    
     _supabase.channel('cloud-sync')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
-        console.log('Realtime Appointment:', payload);
         handleExternalChange(payload, 'appointments');
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, (payload) => {
-        console.log('Realtime Patient:', payload);
         handleExternalChange(payload, 'patients');
     })
-    .subscribe();
+    .subscribe((status) => {
+        if (status === 'SUBSCRIBED') state.realtimeSubscribed = true;
+    });
 }
 
 async function handleExternalChange(payload, tableName) {
@@ -716,41 +718,37 @@ function setupEventListeners() {
             return val ? parseFloat(val) : null;
         };
 
+        // Schema-Safe: Usamos nombres de columna consistentes y evitamos duplicados
         const record = { 
             patient_id: state.activePatientId,
             date: new Date().toISOString().split('T')[0], 
             weight: getVal('hist-weight'), 
             height: getVal('hist-height'),
             bmi: getVal('hist-bmi'),
-            fat: getVal('hist-fat'), // Fallback 1
-            fat_pct: getVal('hist-fat'), // Fallback 2
+            fat: getVal('hist-fat'), 
             muscle: getVal('hist-muscle'),
-            muscle_pct: getVal('hist-muscle'),
             visceral_fat: getVal('hist-visceral'),
             waist: getVal('hist-waist'),
             hip: getVal('hist-hip'),
-            water_pct: getVal('hist-water'),
+            water: getVal('hist-water'),
             notes: document.getElementById('hist-notes').value 
         };
 
         try {
-            if (!record.patient_id) throw new Error("ID de paciente no encontrado. Cierra y abre la ficha nuevamente.");
+            if (!record.patient_id) throw new Error("ID de paciente no encontrado. Reintenta.");
 
-            // Intento de inserción
-            const { data, error } = await _supabase.from('history_records').insert([record]);
+            const { error } = await _supabase.from('history_records').insert([record]);
             
             if (error) {
-                // Si falla por columna inexistente, reintentamos con un objeto más simple
                 console.error("Supabase Save Error:", error);
-                alert(`Error técnico de Supabase:\n\nMensaje: ${error.message}\nCódigo: ${error.code}\nDetalle: ${error.details}\n\nPor favor reporta este mensaje.`);
+                alert(`Error Supabase: ${error.message}\n(Código: ${error.code})`);
             } else {
                 alert("¡Evolución guardada con éxito!");
                 await window.openHistory(state.activePatientId);
                 hForm.reset();
             }
         } catch (err) {
-            console.error("Critical Save Error:", err);
-            alert("Error crítico al guardar: " + err.message);
+            alert("Error: " + err.message);
         } finally {
             btn.innerText = originalText;
             btn.disabled = false;
