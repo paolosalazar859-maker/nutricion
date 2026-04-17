@@ -327,23 +327,51 @@
                 </button>
             </div>
             
-            <h3>Añadir Registro</h3>
-            <form id="history-form" style="margin-bottom: 2rem; background: var(--bg-main); padding: 1rem; border-radius: 12px;">
-                <div class="stat-grid">
+            <h3>Nueva Evolución</h3>
+            <form id="history-form" style="margin-bottom: 2rem; background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                     <div class="form-group">
                         <label>Peso (kg)</label>
                         <input type="number" step="0.1" id="hist-weight" required>
                     </div>
                     <div class="form-group">
+                        <label>Estatura (cm)</label>
+                        <input type="number" step="1" id="hist-height" placeholder="Ej: 170" required>
+                    </div>
+                    <div class="form-group">
+                        <label>IMC</label>
+                        <input type="text" id="hist-bmi" readonly style="background: #f1f5f9; font-weight: 700;">
+                    </div>
+                    <div class="form-group">
                         <label>% Grasa</label>
                         <input type="number" step="0.1" id="hist-fat">
                     </div>
+                    <div class="form-group">
+                        <label>% Músculo</label>
+                        <input type="number" step="0.1" id="hist-muscle">
+                    </div>
+                    <div class="form-group">
+                        <label>Grasa Visceral</label>
+                        <input type="number" step="1" id="hist-visceral">
+                    </div>
+                    <div class="form-group">
+                        <label>Cintura (cm)</label>
+                        <input type="number" step="0.1" id="hist-waist">
+                    </div>
+                    <div class="form-group">
+                        <label>Cadera (cm)</label>
+                        <input type="number" step="0.1" id="hist-hip">
+                    </div>
+                    <div class="form-group">
+                        <label>% Agua</label>
+                        <input type="number" step="0.1" id="hist-water">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Observaciones</label>
-                    <textarea id="hist-notes" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; padding: 0.5rem;"></textarea>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Observaciones de la consulta</label>
+                    <textarea id="hist-notes" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; padding: 0.5rem; min-height: 80px;"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Registro</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Guardar Evolución</button>
             </form>
 
             <h3>Historial</h3>

@@ -572,10 +572,26 @@ function renderHistoryRecords() {
     if (!list || !p) return;
     if (!p.records || p.records.length === 0) { list.innerHTML = '<p class="empty-msg">Sin registros previos.</p>'; return; }
     list.innerHTML = p.records.sort((a,b) => b.date.localeCompare(a.date)).map(r => `
-        <div class="history-card">
-            <div class="date">${r.date}</div>
-            <div class="stats">Peso: ${r.weight}kg | Grasa: ${r.fat || '-'}%</div>
-            <p>${r.notes || ''}</p>
+        <div class="history-card" style="padding: 1.2rem; border-radius: 12px; border: 1px solid #edf2f7; background: white; margin-bottom: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.8rem;">
+                <span style="font-weight: 800; color: var(--primary);">${r.date}</span>
+                <span style="font-size: 0.9rem; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">IMC: ${r.bmi || '-'}</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; font-size: 0.85rem; margin-bottom: 1rem;">
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">Peso</span> <strong>${r.weight}kg</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">Estatura</span> <strong>${r.height || '-'}cm</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">% Grasa</span> <strong>${r.fat || r.fat_pct || '-'}%</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">% Músculo</span> <strong>${r.muscle_pct || '-'}%</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">G. Visceral</span> <strong>${r.visceral_fat || '-'}</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">% Agua</span> <strong>${r.water_pct || '-'}%</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">Cintura</span> <strong>${r.waist || '-'}cm</strong></div>
+                <div><span style="color: #64748b; display: block; font-size: 0.7rem;">Cadera</span> <strong>${r.hip || '-'}cm</strong></div>
+            </div>
+
+            ${r.notes ? `<div style="border-top: 1px solid #f1f5f9; padding-top: 0.8rem; font-size: 0.85rem; color: #475569;">
+                <strong>Observaciones:</strong><br>${r.notes}
+            </div>` : ''}
         </div>
     `).join('');
 }
@@ -638,20 +654,41 @@ function setupEventListeners() {
     addClick('open-booking', () => { const i = document.getElementById('appointment-date'); if (i) i.value = formatDate(state.selectedDate); const m = document.getElementById('modal-overlay'); if (m) m.style.display = 'flex'; });
     addClick('close-modal', () => { const m = document.getElementById('modal-overlay'); if (m) m.style.display = 'none'; });
 
+    // History Form & BMI Logic
     const hForm = document.getElementById('history-form');
+    
+    function updateBMI() {
+        const w = parseFloat(document.getElementById('hist-weight').value);
+        const h = parseFloat(document.getElementById('hist-height').value) / 100;
+        if (w && h) {
+            const bmi = (w / (h * h)).toFixed(1);
+            document.getElementById('hist-bmi').value = bmi;
+        }
+    }
+    const hwInput = document.getElementById('hist-weight');
+    const hhInput = document.getElementById('hist-height');
+    if (hwInput) hwInput.oninput = updateBMI;
+    if (hhInput) hhInput.oninput = updateBMI;
+
     if (hForm) hForm.onsubmit = async (e) => {
         e.preventDefault();
         const record = { 
             patient_id: state.activePatientId,
             date: new Date().toISOString().split('T')[0], 
             weight: document.getElementById('hist-weight').value, 
-            fat: document.getElementById('hist-fat').value, 
+            height: document.getElementById('hist-height').value,
+            bmi: document.getElementById('hist-bmi').value,
+            fat_pct: document.getElementById('hist-fat').value, 
+            muscle_pct: document.getElementById('hist-muscle').value,
+            visceral_fat: document.getElementById('hist-visceral').value,
+            waist: document.getElementById('hist-waist').value,
+            hip: document.getElementById('hist-hip').value,
+            water_pct: document.getElementById('hist-water').value,
             notes: document.getElementById('hist-notes').value 
         };
         const { error } = await _supabase.from('history_records').insert([record]);
         if (error) alert(error.message);
         
-        // Refresh local state and UI
         await window.openHistory(state.activePatientId);
         hForm.reset();
     };
