@@ -373,3 +373,60 @@ main {
     font-size: 1rem;
     color: var(--text-main);
 }
+
+/* --- Print Styles --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #patient-history-overlay, 
+    #patient-history-overlay * {
+        visibility: visible;
+    }
+    #patient-history-overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white !important;
+    }
+    #patient-history-overlay .modal {
+        position: relative;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+        background: white !important;
+    }
+    /* Hide UI elements during print */
+    #history-view-list-container h3:first-of-type,
+    #history-form,
+    #history-view-chart-container,
+    #view-history-list,
+    #view-history-charts,
+    .btn,
+    .btn i,
+    [data-lucide="printer"],
+    [data-lucide="x"] {
+        display: none !important;
+    }
+    #history-records-list {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .history-card {
+        page-break-inside: avoid;
+        border: 1px solid #eee !important;
+        box-shadow: none !important;
+        margin-bottom: 2rem !important;
+    }
+    #history-patient-antecedentes-wrapper {
+        display: block !important;
+        background: #fffbeb !important;
+        -webkit-print-color-adjust: exact;
+    }
+}

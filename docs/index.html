@@ -326,9 +326,14 @@
                     <h2 id="history-patient-name">Nombre del Paciente</h2>
                     <p id="history-patient-meta" style="color: var(--text-muted)"></p>
                 </div>
-                <button class="btn" style="padding: 0.5rem;" onclick="closeHistoryModal()">
-                    <i data-lucide="x"></i>
-                </button>
+                <div style="display: flex; gap: 0.8rem; align-items: center;">
+                    <button class="btn" style="padding: 0.5rem;" title="Imprimir Ficha" onclick="window.print()">
+                        <i data-lucide="printer"></i>
+                    </button>
+                    <button class="btn" style="padding: 0.5rem;" onclick="closeHistoryModal()">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Antecedentes Fijos -->
