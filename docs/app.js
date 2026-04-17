@@ -651,6 +651,7 @@ async function loadInitialData() {
 
 function setupRealtime() {
     if (state.realtimeSubscribed) return;
+    state.realtimeSubscribed = true; // Bloqueo preventivo instantáneo
     
     _supabase.channel('cloud-sync')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
@@ -660,7 +661,7 @@ function setupRealtime() {
         handleExternalChange(payload, 'patients');
     })
     .subscribe((status) => {
-        if (status === 'SUBSCRIBED') state.realtimeSubscribed = true;
+        if (status !== 'SUBSCRIBED') state.realtimeSubscribed = false; // Reset si falla
     });
 }
 
