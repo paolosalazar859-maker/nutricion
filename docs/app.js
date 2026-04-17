@@ -14,7 +14,7 @@ let state = {
         name: "Paolo Salazar",
         specialty: "Nutrición Deportiva",
         email: "contacto@paolo.cl",
-        whatsapp: "56912345678",
+        whatsapp: "+56912345678",
         sis: "",
         university: "",
         address: "Consulta Virtual",
