@@ -1071,20 +1071,23 @@ window.exportToPDF = async (recordId, event) => {
         doc.line(120, 240, 190, 240);
         doc.text(prof.name, 155, 247, { align: 'center' });
 
-        // MÉTODO DE ENTREGA FINAL: Apertura en Ventana Nueva (Inmune a bloqueos de descarga)
-        console.log("Abriendo PDF en ventana nueva...");
+        // MÉTODO DE ENTREGA FINAL: Visor Interno (Inmune a bloqueos)
+        console.log("Mostrando PDF en visor interno...");
         const pdfDataUri = doc.output('datauristring');
         
-        // Abrimos en una ventana nueva para que el usuario pueda guardarlo manualmente
-        const newWindow = window.open();
-        if (newWindow) {
-            newWindow.document.write('<iframe width="100%" height="100%" src="' + pdfDataUri + '"></iframe>');
+        const previewOverlay = document.getElementById('pdf-preview-overlay');
+        const previewIframe = document.getElementById('pdf-preview-iframe');
+        
+        if (previewOverlay && previewIframe) {
+            previewIframe.src = pdfDataUri;
+            previewOverlay.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
         } else {
-            // Si el bloqueador de popups actúa, usamos el guardado directo de jsPDF como último recurso
+            // Fallback total
             doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
         }
         
-        console.log("Proceso de entrega finalizado.");
+        console.log("Proceso de previsualización finalizado.");
 
     } catch (err) {
         console.error("Error Crítico PDF:", err);
