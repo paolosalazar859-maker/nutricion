@@ -282,7 +282,9 @@ main {
     backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Cambio clave: alinear arriba */
+    padding: 2rem 1rem;      /* Margen seguro */
+    overflow-y: auto;        /* Permitir bajar si el modal es largo */
     z-index: 1000;
 }
 
@@ -293,6 +295,11 @@ main {
     width: 100%;
     max-width: 450px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.history-modal {
+    max-width: 900px !important;
 }
 
 .form-group {
