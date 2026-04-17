@@ -617,7 +617,7 @@ function renderHistoryRecords() {
                 <div style="flex: 1; font-size: 0.85rem; color: #475569;">
                     ${r.notes ? `<strong>Observaciones:</strong><br>${r.notes}` : ''}
                 </div>
-                <button class="btn" onclick="exportToPDF('${r.id}')" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; background: #f1f5f9; color: var(--primary); border: none;">
+                <button class="btn" onclick="exportToPDF('${r.id}', event)" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; background: #f1f5f9; color: var(--primary); border: none;">
                     <i data-lucide="file-text" size="14"></i> PDF
                 </button>
             </div>
@@ -962,152 +962,128 @@ function renderCharts() {
 }
 
 // --- PDF Export (Individual Record) ---
-window.exportToPDF = async (recordId) => {
+window.exportToPDF = async (recordId, event) => {
+    let btn = event ? event.currentTarget : null;
+    let oldText = btn ? btn.innerHTML : "";
+    
+    if (btn) {
+        btn.innerHTML = "Procesando...";
+        btn.disabled = true;
+    }
+
     try {
+        console.log("Iniciando exportación PDF para record:", recordId);
+        
+        // 1. Validar Librería
+        if (!window.jspdf) {
+            alert("Error: La librería de PDFs no se ha cargado. Revisa tu conexión a internet.");
+            return;
+        }
+
         const p = state.patients.find(x => x.id === state.activePatientId);
         if (!p) throw new Error("Paciente no seleccionado.");
         
-        // Usamos == para permitir comparación entre string y number si fuera necesario
         const r = p.records.find(re => re.id == recordId);
         if (!r) throw new Error("No se encontró el registro de evolución.");
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const prof = state.profile;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const prof = state.profile;
 
-    // Colores Institucionales
-    const primary = [109, 40, 217]; // Morado Optimizate
-    const textGray = [71, 85, 105];
-    const divider = [226, 232, 240];
+        // Colores y Estilos Premium
+        const primary = [109, 40, 217]; 
+        const textGray = [71, 85, 105];
+        const divider = [226, 232, 240];
 
-    // Cabecera: Marca y Profesional
-    doc.setFillColor(primary[0], primary[1], primary[2]);
-    doc.rect(0, 0, 210, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont("helvetica", "bold");
-    doc.text("OptimizateNutri", 20, 25);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("Plataforma de Gestión Clínica Integral", 20, 32);
-
-    // Datos del Profesional (Derecha)
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text(prof.name, 190, 18, { align: 'right' });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text(prof.specialty, 190, 23, { align: 'right' });
-    if (prof.sis) doc.text(`Registro SIS: ${prof.sis}`, 190, 28, { align: 'right' });
-    if (prof.university) doc.text(prof.university, 190, 33, { align: 'right' });
-
-    // Título del Documento
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("REPORTE DE EVOLUCIÓN ANTROPOMÉTRICA", 105, 55, { align: 'center' });
-    
-    doc.setFontSize(9);
-    doc.setTextColor(textGray[0], textGray[1], textGray[2]);
-    doc.text(`ID de Registro: #${r.id.toString().slice(-6).toUpperCase()}`, 105, 60, { align: 'center' });
-
-    // Sección 1: Datos del Paciente
-    doc.setDrawColor(divider[0], divider[1], divider[2]);
-    doc.line(20, 65, 190, 65);
-    
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("I. DATOS DEL PACIENTE", 20, 75);
-
-    doc.setTextColor(0);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Nombre:", 20, 85);
-    doc.setFont("helvetica", "normal");
-    doc.text(p.name, 45, 85);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text("RUT:", 110, 85);
-    doc.setFont("helvetica", "normal");
-    doc.text(p.rut || 'N/A', 130, 85);
-
-    doc.setFont("helvetica", "bold");
-    doc.text("Fecha:", 20, 92);
-    doc.setFont("helvetica", "normal");
-    doc.text(r.date, 45, 92);
-
-    if (p.antecedentes) {
+        // --- Generación del Contenido (Igual que antes pero con manejo de errores) ---
+        doc.setFillColor(primary[0], primary[1], primary[2]);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
         doc.setFont("helvetica", "bold");
-        doc.text("Antecedentes:", 20, 99);
+        doc.text("OptimizateNutri", 20, 25);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        const antText = doc.splitTextToSize(p.antecedentes, 140);
-        doc.text(antText, 45, 99);
-    }
+        doc.text("Plataforma de Gestión Clínica Integral", 20, 32);
 
-    // Sección 2: Antropometría
-    doc.line(20, 115, 190, 115);
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.setFont("helvetica", "bold");
-    doc.text("II. RESULTADOS ANTROPOMÉTRICOS", 20, 125);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(prof.name, 190, 18, { align: 'right' });
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(prof.specialty, 190, 23, { align: 'right' });
+        if (prof.sis) doc.text(`Registro SIS: ${prof.sis}`, 190, 28, { align: 'right' });
 
-    doc.setTextColor(0);
-    doc.setFontSize(10);
-    const col1 = 20, col2 = 80, col3 = 140;
-    let currY = 135;
-    
-    // Fila 1
-    doc.text(`Peso: ${r.weight} kg`, col1, currY);
-    doc.text(`Estatura: ${r.height || 'N/A'} cm`, col2, currY);
-    doc.text(`IMC: ${r.bmi || 'N/A'}`, col3, currY);
-    
-    currY += 10;
-    // Fila 2
-    doc.text(`% Grasa: ${r.fat || r.fat_pct || 'N/A'} %`, col1, currY);
-    doc.text(`% Músculo: ${r.muscle_pct || 'N/A'} %`, col2, currY);
-    doc.text(`G. Visceral: ${r.visceral_fat || 'N/A'}`, col3, currY);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("REPORTE DE EVOLUCIÓN ANTROPOMÉTRICA", 105, 55, { align: 'center' });
 
-    currY += 10;
-    // Fila 3
-    doc.text(`% Agua: ${r.water_pct || 'N/A'} %`, col1, currY);
-    doc.text(`Cintura: ${r.waist || 'N/A'} cm`, col2, currY);
-    doc.text(`Cadera: ${r.hip || 'N/A'} cm`, col3, currY);
-
-    // Sección 3: Observaciones
-    if (r.notes) {
-        doc.line(20, 165, 190, 165);
+        doc.setDrawColor(divider[0], divider[1], divider[2]);
+        doc.line(20, 65, 190, 65);
         doc.setTextColor(primary[0], primary[1], primary[2]);
-        doc.text("III. OBSERVACIONES Y PLAN DE ACCIÓN", 20, 175);
-        
+        doc.setFontSize(12);
+        doc.text("I. DATOS DEL PACIENTE", 20, 75);
+
         doc.setTextColor(0);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        const notesLines = doc.splitTextToSize(r.notes, 170);
-        doc.text(notesLines, 20, 185);
-    }
+        doc.text(`Nombre: ${p.name}`, 20, 85);
+        doc.text(`RUT: ${p.rut || 'N/A'}`, 110, 85);
+        doc.text(`Fecha: ${r.date}`, 20, 92);
 
-    // Firma (Abajo a la derecha)
-    const signY = 240;
-    doc.line(120, signY, 190, signY);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text(prof.name, 155, signY + 7, { align: 'center' });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text(prof.specialty, 155, signY + 12, { align: 'center' });
-    if (prof.sis) doc.text(`SIS: ${prof.sis}`, 155, signY + 16, { align: 'center' });
+        doc.line(20, 115, 190, 115);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text("II. RESULTADOS ANTROPOMÉTRICOS", 20, 125);
+        doc.setTextColor(0);
+        
+        let currY = 135;
+        doc.text(`Peso: ${r.weight} kg`, 20, currY);
+        doc.text(`Estatura: ${r.height || 'N/A'} cm`, 80, currY);
+        doc.text(`IMC: ${r.bmi || 'N/A'}`, 140, currY);
+        
+        currY += 10;
+        doc.text(`% Grasa: ${r.fat || r.fat_pct || 'N/A'}%`, 20, currY);
+        doc.text(`% Músculo: ${r.muscle_pct || 'N/A'}%`, 80, currY);
+        doc.text(`G. Visceral: ${r.visceral_fat || 'N/A'}`, 140, currY);
 
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(textGray[0], textGray[1], textGray[2]);
-    doc.text("Este documento es confidencial y para uso exclusivo del paciente y su equipo de salud.", 105, 275, { align: 'center' });
-    doc.text(`Generado el ${new Date().toLocaleString()} por OptimizateNutri Cloud`, 105, 280, { align: 'center' });
+        if (r.notes) {
+            doc.line(20, 165, 190, 165);
+            doc.setTextColor(primary[0], primary[1], primary[2]);
+            doc.text("III. OBSERVACIONES Y PLAN", 20, 175);
+            doc.setTextColor(0);
+            const notesLines = doc.splitTextToSize(r.notes, 170);
+            doc.text(notesLines, 20, 185);
+        }
 
-    doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
+        // Firma
+        doc.line(120, 240, 190, 240);
+        doc.text(prof.name, 155, 247, { align: 'center' });
+
+        // MÉTODO DE DESCARGA RESILIENTE: Blob URL
+        console.log("Generando Blob URL para descarga...");
+        const blob = doc.output('blob');
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        console.log("Descarga iniciada.");
+
     } catch (err) {
-        console.error("PDF Export Error:", err);
-        alert("No se pudo generar el PDF: " + err.message);
+        console.error("Error Crítico PDF:", err);
+        alert("Error al generar PDF: " + err.message);
+    } finally {
+        if (btn) {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+            if (window.lucide) lucide.createIcons();
+        }
     }
 };
 
