@@ -706,6 +706,10 @@ function setupEventListeners() {
 
     if (hForm) hForm.onsubmit = async (e) => {
         e.preventDefault();
+        const btn = e.submitter;
+        const originalText = btn.innerText;
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
         
         const getVal = (id) => {
             const val = document.getElementById(id).value;
@@ -718,7 +722,9 @@ function setupEventListeners() {
             weight: getVal('hist-weight'), 
             height: getVal('hist-height'),
             bmi: getVal('hist-bmi'),
-            fat_pct: getVal('hist-fat'), 
+            fat: getVal('hist-fat'), // Fallback 1
+            fat_pct: getVal('hist-fat'), // Fallback 2
+            muscle: getVal('hist-muscle'),
             muscle_pct: getVal('hist-muscle'),
             visceral_fat: getVal('hist-visceral'),
             waist: getVal('hist-waist'),
@@ -727,20 +733,27 @@ function setupEventListeners() {
             notes: document.getElementById('hist-notes').value 
         };
 
-        if (!record.patient_id) {
-            alert("Error: No se ha seleccionado un paciente válido.");
-            return;
-        }
+        try {
+            if (!record.patient_id) throw new Error("ID de paciente no encontrado. Cierra y abre la ficha nuevamente.");
 
-        const { error } = await _supabase.from('history_records').insert([record]);
-        
-        if (error) {
-            console.error("Error saving record:", error);
-            alert("Error al guardar evolución: " + error.message);
-        } else {
-            alert("¡Evolución guardada con éxito!");
-            await window.openHistory(state.activePatientId);
-            hForm.reset();
+            // Intento de inserción
+            const { data, error } = await _supabase.from('history_records').insert([record]);
+            
+            if (error) {
+                // Si falla por columna inexistente, reintentamos con un objeto más simple
+                console.error("Supabase Save Error:", error);
+                alert(`Error técnico de Supabase:\n\nMensaje: ${error.message}\nCódigo: ${error.code}\nDetalle: ${error.details}\n\nPor favor reporta este mensaje.`);
+            } else {
+                alert("¡Evolución guardada con éxito!");
+                await window.openHistory(state.activePatientId);
+                hForm.reset();
+            }
+        } catch (err) {
+            console.error("Critical Save Error:", err);
+            alert("Error crítico al guardar: " + err.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
     };
 
