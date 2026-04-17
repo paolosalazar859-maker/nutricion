@@ -8,6 +8,10 @@
     <!-- Lucide Icons (via CDN for simplicity) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Charts and PDF Libs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <nav class="sidebar">
@@ -335,56 +339,79 @@
                 <p id="history-patient-antecedentes" style="font-size: 0.9rem; color: #78350f; font-weight: 500; margin: 0;"></p>
             </div>
             
-            <h3>Nueva Evolución</h3>
-            <form id="history-form" style="margin-bottom: 2rem; background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
-                <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-                    <div class="form-group">
-                        <label>Peso (kg)</label>
-                        <input type="number" step="0.1" id="hist-weight" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Estatura (cm)</label>
-                        <input type="number" step="1" id="hist-height" placeholder="Ej: 170" required>
-                    </div>
-                    <div class="form-group">
-                        <label>IMC</label>
-                        <input type="text" id="hist-bmi" readonly style="background: #f1f5f9; font-weight: 700;">
-                    </div>
-                    <div class="form-group">
-                        <label>% Grasa</label>
-                        <input type="number" step="0.1" id="hist-fat">
-                    </div>
-                    <div class="form-group">
-                        <label>% Músculo</label>
-                        <input type="number" step="0.1" id="hist-muscle">
-                    </div>
-                    <div class="form-group">
-                        <label>Grasa Visceral</label>
-                        <input type="number" step="1" id="hist-visceral">
-                    </div>
-                    <div class="form-group">
-                        <label>Cintura (cm)</label>
-                        <input type="number" step="0.1" id="hist-waist">
-                    </div>
-                    <div class="form-group">
-                        <label>Cadera (cm)</label>
-                        <input type="number" step="0.1" id="hist-hip">
-                    </div>
-                    <div class="form-group">
-                        <label>% Agua</label>
-                        <input type="number" step="0.1" id="hist-water">
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Observaciones de la consulta</label>
-                    <textarea id="hist-notes" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; padding: 0.5rem; min-height: 80px;"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Guardar Evolución</button>
-            </form>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+                <button class="btn btn-primary" style="flex: 1; font-size: 0.8rem;" id="view-history-list" onclick="toggleHistoryView('list')">
+                    <i data-lucide="list"></i> Lista de Visitas
+                </button>
+                <button class="btn" style="flex: 1; font-size: 0.8rem;" id="view-history-charts" onclick="toggleHistoryView('chart')">
+                    <i data-lucide="line-chart"></i> Gráficos de Evolución
+                </button>
+            </div>
 
-            <h3>Historial</h3>
-            <div id="history-records-list" style="max-height: 300px; overflow-y: auto;">
-                <!-- Records -->
+            <!-- List View -->
+            <div id="history-view-list-container">
+                <h3>Nueva Evolución</h3>
+                <form id="history-form" style="margin-bottom: 2rem; background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="form-group">
+                            <label>Peso (kg)</label>
+                            <input type="number" step="0.1" id="hist-weight" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Estatura (cm)</label>
+                            <input type="number" step="1" id="hist-height" placeholder="Ej: 170" required>
+                        </div>
+                        <div class="form-group">
+                            <label>IMC</label>
+                            <input type="text" id="hist-bmi" readonly style="background: #f1f5f9; font-weight: 700;">
+                        </div>
+                        <div class="form-group">
+                            <label>% Grasa</label>
+                            <input type="number" step="0.1" id="hist-fat">
+                        </div>
+                        <div class="form-group">
+                            <label>% Músculo</label>
+                            <input type="number" step="0.1" id="hist-muscle">
+                        </div>
+                        <div class="form-group">
+                            <label>Grasa Visceral</label>
+                            <input type="number" step="1" id="hist-visceral">
+                        </div>
+                        <div class="form-group">
+                            <label>Cintura (cm)</label>
+                            <input type="number" step="0.1" id="hist-waist">
+                        </div>
+                        <div class="form-group">
+                            <label>Cadera (cm)</label>
+                            <input type="number" step="0.1" id="hist-hip">
+                        </div>
+                        <div class="form-group">
+                            <label>% Agua</label>
+                            <input type="number" step="0.1" id="hist-water">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Observaciones de la consulta</label>
+                        <textarea id="hist-notes" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; padding: 0.5rem; min-height: 80px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Guardar Evolución</button>
+                </form>
+
+                <h3>Historial</h3>
+                <div id="history-records-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Records -->
+                </div>
+            </div>
+
+            <!-- Chart View -->
+            <div id="history-view-chart-container" style="display: none;">
+                <h3 style="margin-bottom: 1.5rem;">Evolución Antropométrica</h3>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <canvas id="weightChart" style="width: 100%; height: 250px;"></canvas>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 12px;">
+                    <canvas id="compChart" style="width: 100%; height: 250px;"></canvas>
+                </div>
             </div>
         </div>
     </div>

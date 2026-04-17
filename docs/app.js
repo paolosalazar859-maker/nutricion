@@ -601,11 +601,17 @@ function renderHistoryRecords() {
                 <div><span style="color: #64748b; display: block; font-size: 0.7rem;">Cadera</span> <strong>${r.hip || '-'}cm</strong></div>
             </div>
 
-            ${r.notes ? `<div style="border-top: 1px solid #f1f5f9; padding-top: 0.8rem; font-size: 0.85rem; color: #475569;">
-                <strong>Observaciones:</strong><br>${r.notes}
-            </div>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #f1f5f9; padding-top: 0.8rem;">
+                <div style="flex: 1; font-size: 0.85rem; color: #475569;">
+                    ${r.notes ? `<strong>Observaciones:</strong><br>${r.notes}` : ''}
+                </div>
+                <button class="btn" onclick="exportToPDF('${r.id}')" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; background: #f1f5f9; color: var(--primary); border: none;">
+                    <i data-lucide="file-text" size="14"></i> PDF
+                </button>
+            </div>
         </div>
     `).join('');
+    if (window.lucide) lucide.createIcons();
 }
 
 // --- Data Source Sync ---
@@ -812,4 +818,155 @@ window.deleteAppointment = async (id) => {
 };
 function updateDateDisplay() { const el = document.getElementById('selected-date-text'); if (el) el.innerText = state.selectedDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }
 
+// --- Charts and Evolution ---
+let weightChartInstance = null;
+let compChartInstance = null;
+
+window.toggleHistoryView = (view) => {
+    const listContainer = document.getElementById('history-view-list-container');
+    const chartContainer = document.getElementById('history-view-chart-container');
+    const listBtn = document.getElementById('view-history-list');
+    const chartBtn = document.getElementById('view-history-charts');
+
+    if (view === 'list') {
+        listContainer.style.display = 'block';
+        chartContainer.style.display = 'none';
+        listBtn.classList.add('btn-primary');
+        chartBtn.classList.remove('btn-primary');
+    } else {
+        listContainer.style.display = 'none';
+        chartContainer.style.display = 'block';
+        listBtn.classList.remove('btn-primary');
+        chartBtn.classList.add('btn-primary');
+        renderCharts();
+    }
+    if (window.lucide) lucide.createIcons();
+};
+
+function renderCharts() {
+    const p = state.patients.find(x => x.id === state.activePatientId);
+    if (!p || !p.records || p.records.length === 0) return;
+
+    const canvasW = document.getElementById('weightChart');
+    const canvasC = document.getElementById('compChart');
+    if (!canvasW || !canvasC) return;
+
+    const data = [...p.records].sort((a,b) => a.date.localeCompare(b.date));
+    const labels = data.map(d => d.date);
+
+    if (weightChartInstance) weightChartInstance.destroy();
+    if (compChartInstance) compChartInstance.destroy();
+
+    const ctxW = canvasW.getContext('2d');
+    weightChartInstance = new Chart(ctxW, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Peso (kg)',
+                data: data.map(d => d.weight),
+                borderColor: '#6d28d9',
+                backgroundColor: 'rgba(109, 40, 217, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+    });
+
+    const ctxC = canvasC.getContext('2d');
+    compChartInstance = new Chart(ctxC, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                { label: '% Grasa', data: data.map(d => d.fat_pct || d.fat), backgroundColor: '#fb7185' },
+                { label: '% Músculo', data: data.map(d => d.muscle_pct), backgroundColor: '#4ade80' }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } }, maintainAspectRatio: false }
+    });
+}
+
+// --- PDF Export ---
+window.exportToPDF = async (recordId) => {
+    const p = state.patients.find(x => x.id === state.activePatientId);
+    const r = p.records.find(re => re.id === recordId);
+    if (!p || !r) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Estilo y Colores
+    const primary = [109, 40, 217];
+    doc.setTextColor(primary[0], primary[1], primary[2]);
+    doc.setFontSize(22);
+    doc.text("OptimizateNutri", 20, 30);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Fecha del Reporte: ${r.date}`, 20, 38);
+    
+    doc.setDrawColor(230, 230, 230);
+    doc.line(20, 45, 190, 45);
+
+    // Datos del Paciente
+    doc.setTextColor(0);
+    doc.setFontSize(14);
+    doc.text("Datos del Paciente", 20, 55);
+    doc.setFontSize(11);
+    doc.text(`Nombre: ${p.name}`, 20, 65);
+    doc.text(`RUT: ${p.rut || 'N/A'}`, 20, 72);
+    if (p.antecedentes) {
+        doc.setTextColor(150, 0, 0);
+        doc.text("Antecedentes:", 20, 82);
+        doc.setTextColor(0);
+        doc.setFontSize(10);
+        const lines = doc.splitTextToSize(p.antecedentes, 150);
+        doc.text(lines, 20, 88);
+    }
+
+    doc.line(20, 110, 190, 110);
+
+    // Resultados de la Sesión
+    doc.setFontSize(14);
+    doc.setTextColor(primary[0], primary[1], primary[2]);
+    doc.text("Resultados Antropométricos", 20, 120);
+    
+    doc.setTextColor(0);
+    doc.setFontSize(10);
+    const split = 50;
+    const startY = 130;
+    doc.text(`Peso: ${r.weight} kg`, 20, startY);
+    doc.text(`Estatura: ${r.height || 'N/A'} cm`, 20 + split, startY);
+    doc.text(`IMC: ${r.bmi || 'N/A'}`, 20 + (split * 2), startY);
+
+    doc.text(`% Grasa: ${r.fat_pct || r.fat || 'N/A'}%`, 20, startY + 10);
+    doc.text(`% Músculo: ${r.muscle_pct || 'N/A'}%`, 20 + split, startY + 10);
+    doc.text(`G. Visceral: ${r.visceral_fat || 'N/A'}`, 20 + (split * 2), startY + 10);
+
+    doc.text(`Cintura: ${r.waist || 'N/A'} cm`, 20, startY + 20);
+    doc.text(`Cadera: ${r.hip || 'N/A'} cm`, 20 + split, startY + 20);
+    doc.text(`% Agua: ${r.water_pct || 'N/A'}%`, 20 + (split * 2), startY + 20);
+
+    // Observaciones
+    if (r.notes) {
+        doc.setFontSize(14);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text("Observaciones y Plan", 20, 170);
+        doc.setTextColor(0);
+        doc.setFontSize(11);
+        const notesLines = doc.splitTextToSize(r.notes, 170);
+        doc.text(notesLines, 20, 180);
+    }
+
+    // Pie de página
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Generado por OptimizateNutri - Tu aliado en Nutrición", 105, 285, { align: 'center' });
+
+    doc.save(`Reporte_Nutricion_${p.name}_${r.date}.pdf`);
+};
+
 init();
+
