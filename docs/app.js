@@ -217,23 +217,17 @@ window.resetMonthPlanning = () => {
         return;
     }
 
-    if (!confirm('¿Seguro quieres borrar todas las excepciones de este mes y volver a tu horario base?')) return;
+    if (!confirm('¿Seguro quieres borrar todas las excepciones de este mes y volver a tu HORARIO BASE (el habitual de tu perfil)?')) return;
     
     const year = state.planningDate.getFullYear();
     const month = state.planningDate.getMonth();
     const datePrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
     
-    // Create a new object excluding the current month's overrides
-    const currentOverrides = p.availability.overrides;
     const newOverrides = {};
     let count = 0;
-
-    Object.entries(currentOverrides).forEach(([dateStr, modality]) => {
-        if (dateStr.startsWith(datePrefix)) {
-            count++;
-        } else {
-            newOverrides[dateStr] = modality;
-        }
+    Object.entries(p.availability.overrides).forEach(([dateStr, modality]) => {
+        if (dateStr.startsWith(datePrefix)) count++;
+        else newOverrides[dateStr] = modality;
     });
 
     if (count === 0) {
@@ -243,11 +237,37 @@ window.resetMonthPlanning = () => {
 
     state.profile.availability.overrides = newOverrides;
     saveProfile();
-    
     state.selectedPlanningDates = [];
     renderPlanningCalendar();
     updateSelectionStatus();
-    alert(`Se han borrado ${count} días personalizados. Ahora el mes sigue tu horario base.`);
+    alert(`Se han reseteado ${count} días. Ahora el mes sigue tu configuración habitual.`);
+};
+
+window.markAllMonthOff = () => {
+    if (!confirm('¿Seguro quieres poner TODO el mes como "CERRADO" para empezar a planificar desde cero?')) return;
+    
+    if (!state.profile.availability) {
+        state.profile.availability = { weekly: [], blocked: "", overrides: {} };
+    }
+    if (!state.profile.availability.overrides) {
+        state.profile.availability.overrides = {};
+    }
+
+    const year = state.planningDate.getFullYear();
+    const month = state.planningDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        const dateStr = formatDate(d);
+        state.profile.availability.overrides[dateStr] = 'off';
+    }
+
+    saveProfile();
+    state.selectedPlanningDates = [];
+    renderPlanningCalendar();
+    updateSelectionStatus();
+    alert('Todo el mes se ha marcado como CERRADO. Ahora puedes seleccionar los días que trabajas y asignarles modalidad.');
 };
 
 window.clearSelection = () => {
