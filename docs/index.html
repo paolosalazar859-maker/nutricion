@@ -266,6 +266,14 @@
             <h2 style="margin-bottom: 1.5rem;">Agendar Nueva Cita</h2>
             <form id="booking-form">
                 <div class="form-group">
+                    <label for="book-rut">RUT del Paciente (Búsqueda/Enrolamiento)</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="book-rut" placeholder="Ej: 12345678k" style="flex: 1;">
+                        <button type="button" class="btn" id="search-patient-btn" style="padding: 0.5rem;"><i data-lucide="search"></i></button>
+                    </div>
+                    <div id="booking-patient-status" style="font-size: 0.75rem; margin-top: 0.3rem; color: var(--primary); font-weight: 600;"></div>
+                </div>
+                <div class="form-group">
                     <label for="patient-name">Nombre del Paciente</label>
                     <input type="text" id="patient-name" placeholder="Ej: Juan Pérez" required>
                 </div>
@@ -340,6 +348,36 @@
             </div>
         </div>
     </div>
+    <!-- Patient Management Modal (Add/Edit) -->
+    <div class="modal-overlay" id="patient-modal">
+        <div class="modal">
+            <h2 id="patient-modal-title">Enrolar Paciente</h2>
+            <form id="patient-manage-form">
+                <input type="hidden" id="manage-patient-id">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="manage-patient-name" required>
+                </div>
+                <div class="form-group">
+                    <label>RUT (Sin puntos ni guion)</label>
+                    <input type="text" id="manage-patient-rut">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="manage-patient-phone">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="manage-patient-email">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" class="btn" style="flex: 1; background: #f1f5f9;" id="close-patient-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

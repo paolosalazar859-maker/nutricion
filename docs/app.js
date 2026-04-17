@@ -493,6 +493,7 @@ function renderPatients() {
                 <p>${p.rut ? 'RUT: ' + p.rut + ' | ' : ''}${p.phone || p.email}</p>
             </div>
             <div class="btns">
+                <button class="btn" style="padding: 0.5rem;" onclick="openPatientModal('${p.id}')"><i data-lucide="edit-3" size="16"></i></button>
                 <button class="btn" onclick="openHistory('${p.id}')">Historial</button>
                 <button class="btn del" onclick="deletePatient('${p.id}')"><i data-lucide="user-minus" size="18"></i></button>
             </div>
@@ -501,17 +502,28 @@ function renderPatients() {
     if (window.lucide) lucide.createIcons();
 }
 
-window.openAddPatientModal = async () => { 
-    const n = prompt("Nombre:"); 
-    const r = prompt("RUT (sin puntos ni guion):");
-    const p = prompt("WhatsApp:");
-    const e = prompt("Email:"); 
-    if (n) { 
-        const { error } = await _supabase.from('patients').upsert([{ name: n, email: e, phone: p, rut: r }]);
-        if (error) alert(error.message);
-        loadInitialData();
-    } 
+window.openPatientModal = (id = null) => {
+    const title = document.getElementById('patient-modal-title');
+    const form = document.getElementById('patient-manage-form');
+    form.reset();
+    document.getElementById('manage-patient-id').value = id || "";
+
+    if (id) {
+        title.innerText = "Editar Paciente";
+        const p = state.patients.find(x => x.id === id);
+        if (p) {
+            document.getElementById('manage-patient-name').value = p.name || "";
+            document.getElementById('manage-patient-rut').value = p.rut || "";
+            document.getElementById('manage-patient-phone').value = p.phone || "";
+            document.getElementById('manage-patient-email').value = p.email || "";
+        }
+    } else {
+        title.innerText = "Enrolar Paciente";
+    }
+    document.getElementById('patient-modal').style.display = 'flex';
 };
+
+window.openAddPatientModal = () => openPatientModal();
 
 window.deletePatient = async (id) => { 
     if (confirm('¿Eliminar paciente y todas sus citas?')) { 
@@ -631,8 +643,28 @@ function setupEventListeners() {
     const bForm = document.getElementById('booking-form');
     if (bForm) bForm.onsubmit = async (e) => {
         e.preventDefault();
+        let patientName = document.getElementById('patient-name').value;
+        let patientRut = document.getElementById('book-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,'');
+        
+        // 1. Check if we need to Enroll (Create Patient)
+        let finalPatientId = null;
+        const existing = state.patients.find(p => p.rut === patientRut && patientRut !== "");
+        
+        if (!existing && patientRut !== "") {
+            const { data: pData, error: pError } = await _supabase
+                .from('patients')
+                .insert([{ name: patientName, rut: patientRut }])
+                .select();
+            if (pError) { alert("Error al enrolar: " + pError.message); return; }
+            finalPatientId = pData[0].id;
+            await loadInitialData(); // Update local state
+        } else if (existing) {
+            finalPatientId = existing.id;
+        }
+
         const app = { 
-            patient_name: document.getElementById('patient-name').value, 
+            patient_id: finalPatientId,
+            patient_name: patientName, 
             date: document.getElementById('appointment-date').value, 
             time: document.getElementById('appointment-time').value, 
             modality: document.getElementById('appointment-type').value 
@@ -641,7 +673,52 @@ function setupEventListeners() {
         if (error) alert(error.message);
         document.getElementById('modal-overlay').style.display = 'none';
         bForm.reset();
+        document.getElementById('booking-patient-status').innerText = "";
     };
+
+    // Patient Search in Booking
+    addClick('search-patient-btn', async () => {
+        const rut = document.getElementById('book-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,'');
+        if (!rut) return;
+        const p = state.patients.find(x => x.rut === rut);
+        const status = document.getElementById('booking-patient-status');
+        if (p) {
+            document.getElementById('patient-name').value = p.name;
+            status.innerText = "✅ Paciente enrolado encontrado";
+            status.style.color = "var(--primary)";
+        } else {
+            status.innerText = "✨ Nuevo paciente (se enrolará al agendar)";
+            status.style.color = "#f59e0b";
+        }
+    });
+
+    // Patient Manage Form
+    const pmForm = document.getElementById('patient-manage-form');
+    if (pmForm) pmForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('manage-patient-id').value;
+        const data = {
+            name: document.getElementById('manage-patient-name').value,
+            rut: document.getElementById('manage-patient-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,''),
+            phone: document.getElementById('manage-patient-phone').value,
+            email: document.getElementById('manage-patient-email').value
+        };
+
+        let result;
+        if (id) {
+            result = await _supabase.from('patients').update(data).eq('id', id);
+        } else {
+            result = await _supabase.from('patients').insert([data]);
+        }
+
+        if (result.error) alert(result.error.message);
+        else {
+            document.getElementById('patient-modal').style.display = 'none';
+            await loadInitialData();
+            renderPatients();
+        }
+    };
+    addClick('close-patient-modal', () => document.getElementById('patient-modal').style.display = 'none');
 
     const pForm = document.getElementById('profile-form');
     if (pForm) pForm.onsubmit = (e) => {
