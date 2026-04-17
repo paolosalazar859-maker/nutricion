@@ -335,8 +335,7 @@ function loadProfile() {
         'profile-price': p.price || "",
         'profile-email': p.email,
         'profile-address': p.address || "",
-        'profile-bio': p.bio,
-        'blocked-dates': p.availability?.blocked || ""
+        'profile-bio': p.bio
     };
     Object.entries(setters).forEach(([id, val]) => {
         const el = document.getElementById(id);
@@ -421,11 +420,16 @@ window.generateBookingLink = () => {
     });
 
     const link = `${baseUrl}?${params.toString()}`;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(link).then(() => alert("¡Link de Reserva Copiado! Incluye tus nuevos rangos horarios."));
-    } else {
-        alert("Enlace: " + link);
-    }
+    
+    // Copy to clipboard with visual feedback
+    const dummy = document.createElement('textarea');
+    document.body.appendChild(dummy);
+    dummy.value = link;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+    
+    alert("¡Enlace copiado con éxito! Ya puedes pegarlo donde desees.");
 };
 
 function daysArray() { return [0,1,2,3,4,5,6]; }
@@ -547,7 +551,7 @@ function setupEventListeners() {
             s: document.querySelector(`.avail-start[data-index="${i}"]`).value,
             e: document.querySelector(`.avail-end[data-index="${i}"]`).value
         }));
-        state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, sis: document.getElementById('profile-sis').value, university: document.getElementById('profile-university').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: document.getElementById('blocked-dates').value.trim() } };
+        state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, sis: document.getElementById('profile-sis').value, university: document.getElementById('profile-university').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: "" } };
         saveProfile();
         alert('Perfil actualizado con rangos horarios.');
     };
