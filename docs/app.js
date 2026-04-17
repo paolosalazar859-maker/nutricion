@@ -75,6 +75,7 @@ async function init() {
     setupEventListeners();
     updateDateDisplay();
     if (window.lucide) lucide.createIcons();
+    setupRUTMasks();
 }
 
 // --- Navigation ---
@@ -521,12 +522,11 @@ function renderAppointments() {
 function renderPatients() {
     const list = document.getElementById('patients-list');
     if (!list) return;
-    if (state.patients.length === 0) { list.innerHTML = '<p class="empty-msg">Sin pacientes.</p>'; return; }
     list.innerHTML = state.patients.map(p => `
         <div class="patient-row">
-            <div class="info">
+            <div class="patient-info">
                 <h4>${p.name}</h4>
-                <p>${p.rut ? 'RUT: ' + p.rut + ' | ' : ''}${p.phone || p.email}</p>
+                <p>${window.formatRUT(p.rut)} • ${p.email || p.phone || 'Sin contacto'}</p>
             </div>
             <div class="btns">
                 <button class="btn" style="padding: 0.5rem;" onclick="openPatientModal('${p.id}')"><i data-lucide="edit-3" size="16"></i></button>
@@ -575,7 +575,7 @@ window.openHistory = async (pid) => {
     if (!p) return; 
     
     document.getElementById('history-patient-name').innerText = p.name; 
-    document.getElementById('history-patient-meta').innerText = `${p.rut ? 'RUT: ' + p.rut + ' • ' : ''}${p.email || p.phone}`; 
+    document.getElementById('history-patient-meta').innerText = `${p.rut ? 'RUT: ' + window.formatRUT(p.rut) + ' • ' : ''}${p.email || p.phone}`; 
     
     // Fetch records
     const { data: recs } = await _supabase.from('history_records').select('*').eq('patient_id', pid);
@@ -633,6 +633,30 @@ function renderHistoryRecords() {
         </div>
     `).join('');
     if (window.lucide) lucide.createIcons();
+    setupRUTMasks(); // Activar máscaras al renderizar registros
+}
+
+function setupRUTMasks() {
+    const rutFields = ['book-rut', 'manage-patient-rut'];
+    rutFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/[^0-9kK]/g, '');
+                if (value.length > 1) {
+                    const dv = value.slice(-1);
+                    const core = value.slice(0, -1);
+                    let formatted = "";
+                    for (let i = core.length - 1, j = 0; i >= 0; i--, j++) {
+                        formatted = core[i] + (j > 0 && j % 3 === 0 ? "." : "") + formatted;
+                    }
+                    e.target.value = formatted + "-" + dv;
+                } else {
+                    e.target.value = value;
+                }
+            });
+        }
+    });
 }
 
 // --- Data Source Sync ---
@@ -891,6 +915,18 @@ function setupEventListeners() {
 }
 
 // --- Helpers ---
+window.formatRUT = (rut) => {
+    if (!rut) return "N/A";
+    let value = rut.replace(/[^0-9kK]/g, '');
+    if (value.length < 2) return value;
+    const dv = value.slice(-1);
+    const core = value.slice(0, -1);
+    let formatted = "";
+    for (let i = core.length - 1, j = 0; i >= 0; i--, j++) {
+        formatted = core[i] + (j > 0 && j % 3 === 0 ? "." : "") + formatted;
+    }
+    return formatted + "-" + dv;
+};
 function formatDate(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
 function saveProfile() { localStorage.setItem('nutriProfile', JSON.stringify(state.profile)); }
 
