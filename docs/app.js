@@ -949,7 +949,7 @@ function renderCharts() {
     });
 }
 
-// --- PDF Export ---
+// --- PDF Export (Individual Record) ---
 window.exportToPDF = async (recordId) => {
     const p = state.patients.find(x => x.id === state.activePatientId);
     const r = p.records.find(re => re.id === recordId);
@@ -957,74 +957,136 @@ window.exportToPDF = async (recordId) => {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const prof = state.profile;
 
-    // Estilo y Colores
-    const primary = [109, 40, 217];
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.setFontSize(22);
-    doc.text("OptimizateNutri", 20, 30);
+    // Colores Institucionales
+    const primary = [109, 40, 217]; // Morado Optimizate
+    const textGray = [71, 85, 105];
+    const divider = [226, 232, 240];
+
+    // Cabecera: Marca y Profesional
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("OptimizateNutri", 20, 25);
     
     doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Fecha del Reporte: ${r.date}`, 20, 38);
-    
-    doc.setDrawColor(230, 230, 230);
-    doc.line(20, 45, 190, 45);
+    doc.setFont("helvetica", "normal");
+    doc.text("Plataforma de Gestión Clínica Integral", 20, 32);
 
-    // Datos del Paciente
-    doc.setTextColor(0);
-    doc.setFontSize(14);
-    doc.text("Datos del Paciente", 20, 55);
+    // Datos del Profesional (Derecha)
     doc.setFontSize(11);
-    doc.text(`Nombre: ${p.name}`, 20, 65);
-    doc.text(`RUT: ${p.rut || 'N/A'}`, 20, 72);
-    if (p.antecedentes) {
-        doc.setTextColor(150, 0, 0);
-        doc.text("Antecedentes:", 20, 82);
-        doc.setTextColor(0);
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize(p.antecedentes, 150);
-        doc.text(lines, 20, 88);
-    }
+    doc.setFont("helvetica", "bold");
+    doc.text(prof.name, 190, 18, { align: 'right' });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(prof.specialty, 190, 23, { align: 'right' });
+    if (prof.sis) doc.text(`Registro SIS: ${prof.sis}`, 190, 28, { align: 'right' });
+    if (prof.university) doc.text(prof.university, 190, 33, { align: 'right' });
 
-    doc.line(20, 110, 190, 110);
-
-    // Resultados de la Sesión
-    doc.setFontSize(14);
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.text("Resultados Antropométricos", 20, 120);
+    // Título del Documento
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("REPORTE DE EVOLUCIÓN ANTROPOMÉTRICA", 105, 55, { align: 'center' });
     
+    doc.setFontSize(9);
+    doc.setTextColor(textGray[0], textGray[1], textGray[2]);
+    doc.text(`ID de Registro: #${r.id.toString().slice(-6).toUpperCase()}`, 105, 60, { align: 'center' });
+
+    // Sección 1: Datos del Paciente
+    doc.setDrawColor(divider[0], divider[1], divider[2]);
+    doc.line(20, 65, 190, 65);
+    
+    doc.setTextColor(primary[0], primary[1], primary[2]);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("I. DATOS DEL PACIENTE", 20, 75);
+
     doc.setTextColor(0);
     doc.setFontSize(10);
-    const split = 50;
-    const startY = 130;
-    doc.text(`Peso: ${r.weight} kg`, 20, startY);
-    doc.text(`Estatura: ${r.height || 'N/A'} cm`, 20 + split, startY);
-    doc.text(`IMC: ${r.bmi || 'N/A'}`, 20 + (split * 2), startY);
+    doc.setFont("helvetica", "bold");
+    doc.text("Nombre:", 20, 85);
+    doc.setFont("helvetica", "normal");
+    doc.text(p.name, 45, 85);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("RUT:", 110, 85);
+    doc.setFont("helvetica", "normal");
+    doc.text(p.rut || 'N/A', 130, 85);
 
-    doc.text(`% Grasa: ${r.fat_pct || r.fat || 'N/A'}%`, 20, startY + 10);
-    doc.text(`% Músculo: ${r.muscle_pct || 'N/A'}%`, 20 + split, startY + 10);
-    doc.text(`G. Visceral: ${r.visceral_fat || 'N/A'}`, 20 + (split * 2), startY + 10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Fecha:", 20, 92);
+    doc.setFont("helvetica", "normal");
+    doc.text(r.date, 45, 92);
 
-    doc.text(`Cintura: ${r.waist || 'N/A'} cm`, 20, startY + 20);
-    doc.text(`Cadera: ${r.hip || 'N/A'} cm`, 20 + split, startY + 20);
-    doc.text(`% Agua: ${r.water_pct || 'N/A'}%`, 20 + (split * 2), startY + 20);
-
-    // Observaciones
-    if (r.notes) {
-        doc.setFontSize(14);
-        doc.setTextColor(primary[0], primary[1], primary[2]);
-        doc.text("Observaciones y Plan", 20, 170);
-        doc.setTextColor(0);
-        doc.setFontSize(11);
-        const notesLines = doc.splitTextToSize(r.notes, 170);
-        doc.text(notesLines, 20, 180);
+    if (p.antecedentes) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Antecedentes:", 20, 99);
+        doc.setFont("helvetica", "normal");
+        const antText = doc.splitTextToSize(p.antecedentes, 140);
+        doc.text(antText, 45, 99);
     }
 
-    // Pie de página
-    doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Generado por OptimizateNutri - Tu aliado en Nutrición", 105, 285, { align: 'center' });
+    // Sección 2: Antropometría
+    doc.line(20, 115, 190, 115);
+    doc.setTextColor(primary[0], primary[1], primary[2]);
+    doc.setFont("helvetica", "bold");
+    doc.text("II. RESULTADOS ANTROPOMÉTRICOS", 20, 125);
+
+    doc.setTextColor(0);
+    doc.setFontSize(10);
+    const col1 = 20, col2 = 80, col3 = 140;
+    let currY = 135;
+    
+    // Fila 1
+    doc.text(`Peso: ${r.weight} kg`, col1, currY);
+    doc.text(`Estatura: ${r.height || 'N/A'} cm`, col2, currY);
+    doc.text(`IMC: ${r.bmi || 'N/A'}`, col3, currY);
+    
+    currY += 10;
+    // Fila 2
+    doc.text(`% Grasa: ${r.fat || r.fat_pct || 'N/A'} %`, col1, currY);
+    doc.text(`% Músculo: ${r.muscle_pct || 'N/A'} %`, col2, currY);
+    doc.text(`G. Visceral: ${r.visceral_fat || 'N/A'}`, col3, currY);
+
+    currY += 10;
+    // Fila 3
+    doc.text(`% Agua: ${r.water_pct || 'N/A'} %`, col1, currY);
+    doc.text(`Cintura: ${r.waist || 'N/A'} cm`, col2, currY);
+    doc.text(`Cadera: ${r.hip || 'N/A'} cm`, col3, currY);
+
+    // Sección 3: Observaciones
+    if (r.notes) {
+        doc.line(20, 165, 190, 165);
+        doc.setTextColor(primary[0], primary[1], primary[2]);
+        doc.text("III. OBSERVACIONES Y PLAN DE ACCIÓN", 20, 175);
+        
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "normal");
+        const notesLines = doc.splitTextToSize(r.notes, 170);
+        doc.text(notesLines, 20, 185);
+    }
+
+    // Firma (Abajo a la derecha)
+    const signY = 240;
+    doc.line(120, signY, 190, signY);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(prof.name, 155, signY + 7, { align: 'center' });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(prof.specialty, 155, signY + 12, { align: 'center' });
+    if (prof.sis) doc.text(`SIS: ${prof.sis}`, 155, signY + 16, { align: 'center' });
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(textGray[0], textGray[1], textGray[2]);
+    doc.text("Este documento es confidencial y para uso exclusivo del paciente y su equipo de salud.", 105, 275, { align: 'center' });
+    doc.text(`Generado el ${new Date().toLocaleString()} por OptimizateNutri Cloud`, 105, 280, { align: 'center' });
 
     doc.save(`Ficha_${p.name.replace(/\s+/g, '_')}_${r.date}.pdf`);
 };
