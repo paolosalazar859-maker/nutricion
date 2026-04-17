@@ -469,15 +469,31 @@ function renderAppointments() {
     const dateStr = formatDate(state.selectedDate);
     const dayApps = state.appointments.filter(a => a.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
     if (dayApps.length === 0) { list.innerHTML = '<p class="empty-msg">No hay citas.</p>'; return; }
-    list.innerHTML = dayApps.map(app => `
-        <div class="appointment-item">
-            <div class="info">
-                <div class="time">${app.time}</div>
-                <div class="pat">${app.patient}</div>
+    
+    list.innerHTML = dayApps.map(app => {
+        const p = state.patients.find(x => x.id === app.patient_id);
+        const phone = p ? p.phone : '';
+        const waLink = phone ? `https://wa.me/${phone.replace(/\+/g,'')}` : '#';
+        
+        return `
+        <div class="appointment-item" style="display: block; padding: 1rem; margin-bottom: 1rem; border: 1px solid #edf2f7; border-radius: 12px; background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <div>
+                    <span class="time" style="font-weight: 800; color: var(--primary); font-size: 1.1rem; display: block;">${app.time}</span>
+                    <h4 style="margin: 0.2rem 0; font-size: 1.1rem; color: var(--text-main);">${app.patient_name || 'Paciente'}</h4>
+                    ${phone ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">${phone}</p>` : ''}
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    ${phone ? `<a href="${waLink}" target="_blank" class="btn" style="padding: 0.4rem; color: #25d366; border-color: #25d366;"><i data-lucide="message-circle" size="18"></i></a>` : ''}
+                    <button class="btn del" style="padding: 0.4rem;" onclick="deleteAppointment('${app.id}')"><i data-lucide="trash-2" size="18"></i></button>
+                </div>
             </div>
-            <button class="btn del" onclick="deleteAppointment('${app.id}')"><i data-lucide="trash-2" size="16"></i></button>
+            ${app.reason ? `<p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 3px solid var(--primary);">
+                <strong>Motivo:</strong> ${app.reason}
+            </p>` : ''}
         </div>
-    `).join('');
+        `;
+    }).join('');
     if (window.lucide) lucide.createIcons();
 }
 
@@ -667,7 +683,8 @@ function setupEventListeners() {
             patient_name: patientName, 
             date: document.getElementById('appointment-date').value, 
             time: document.getElementById('appointment-time').value, 
-            modality: document.getElementById('appointment-type').value 
+            modality: document.getElementById('appointment-type').value,
+            reason: document.getElementById('appointment-reason').value
         };
         const { error } = await _supabase.from('appointments').insert([app]);
         if (error) alert(error.message);

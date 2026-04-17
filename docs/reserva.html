@@ -442,7 +442,8 @@
                     patient_name: pData[0].name,
                     date: selectedDate.toISOString().split('T')[0],
                     time: selectedTime,
-                    modality: MODALITY_LABELS[dayConfig.m]
+                    modality: MODALITY_LABELS[dayConfig.m],
+                    reason: patientData.bio || ""
                 };
 
                 const { error: aError } = await _supabase.from('appointments').insert([appointment]);
