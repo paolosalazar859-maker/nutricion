@@ -185,6 +185,7 @@ main {
     transition: all 0.2s ease;
     font-size: 0.9rem;
     border: 1px solid transparent;
+    position: relative;
 }
 
 .calendar-day:hover:not(.empty) {
@@ -198,13 +199,12 @@ main {
     font-weight: 600;
 }
 
-.calendar-day.has-appointment::after {
+.calendar-day.has-appointment::after, .dot {
     content: '';
     position: absolute;
-    bottom: 5px;
-    width: 4px;
-    height: 4px;
-    background: var(--secondary);
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
     border-radius: 50%;
 }
 

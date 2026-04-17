@@ -52,6 +52,7 @@ function init() {
     renderPatients();
     renderAvailabilityConfig();
     renderPlanningCalendar();
+    updatePlanningSummary(formatDate(state.planningDate));
     setupEventListeners();
     updateDateDisplay();
     if (window.lucide) lucide.createIcons();
@@ -147,20 +148,88 @@ function renderPlanningCalendar() {
         if (modality === 'off') dayDiv.style.borderLeft = '4px solid #94a3b8';
         if (state.selectedPlanningDates.includes(dateStr)) dayDiv.classList.add('selected');
 
+        // Dot indicator for appointments
+        const hasApps = state.appointments.some(a => a.date === dateStr);
+        if (hasApps) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.style.bottom = '4px';
+            dot.style.right = '4px';
+            dayDiv.appendChild(dot);
+        }
+
         dayDiv.onmousedown = (e) => { 
             e.preventDefault(); 
             isDragging = true;
             dragMode = !state.selectedPlanningDates.includes(dateStr);
             setSelection(dateStr, dragMode);
+            updatePlanningSummary(dateStr);
         };
 
         dayDiv.onmouseenter = () => { 
             if (isDragging) setSelection(dateStr, dragMode); 
         };
+
+        dayDiv.onclick = (e) => {
+            if (!isDragging) updatePlanningSummary(dateStr);
+        };
         
         grid.appendChild(dayDiv);
     }
 }
+
+window.updatePlanningSummary = (dateStr) => {
+    const p = state.profile;
+    const d = new Date(dateStr + "T12:00:00"); // Avoid timezone shift
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    
+    document.getElementById('plan-selected-date').innerText = d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Get config for this day
+    const overrides = p.availability?.overrides || {};
+    const weekly = p.availability?.weekly || [];
+    let dayIdx = d.getDay();
+    let schIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+    const config = overrides[dateStr] || weekly[schIdx] || {m: 'off', s: '09:00', e: '14:00'};
+
+    const apps = state.appointments.filter(a => a.date === dateStr);
+    
+    // Calculate availability
+    const startH = parseInt(config.s.split(':')[0]);
+    const endH = parseInt(config.e.split(':')[0]);
+    const totalSlots = config.m === 'off' ? 0 : (endH - startH + 1);
+    const availableSlots = Math.max(0, totalSlots - apps.length);
+
+    const labels = { office: '🏢 Presencial', online: '💻 Online', off: '❌ Cerrado' };
+    
+    const stats = document.getElementById('plan-stats');
+    stats.innerHTML = `
+        <div class="glass-card" style="padding: 0.8rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Estado</div>
+            <div style="font-weight: 700;">${labels[config.m]}</div>
+        </div>
+        <div class="glass-card" style="padding: 0.8rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Horas Libres</div>
+            <div style="font-weight: 700; color: var(--primary);">${availableSlots} / ${totalSlots}</div>
+        </div>
+    `;
+
+    const list = document.getElementById('plan-appointments-list');
+    if (apps.length === 0) {
+        list.innerHTML = '<p class="empty-msg">Sin citas en este día.</p>';
+    } else {
+        list.innerHTML = apps.sort((a,b)=>a.time.localeCompare(b.time)).map(a => `
+            <div class="appointment-item" style="margin-bottom: 0.5rem; padding: 0.8rem;">
+                <div class="info">
+                    <div class="time">${a.time}</div>
+                    <div class="pat">${a.patient}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+};
 
 window.selectColumn = (dayIndex) => {
     const year = state.planningDate.getFullYear();

@@ -110,65 +110,82 @@
 
         <!-- Availability (Planning) View -->
         <div id="availability-view" class="view-section">
-            <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Planificador Mensual</h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Selecciona días para aplicar la modalidad de atención.</p>
+            <div class="dashboard-grid"> <!-- Usamos la misma cuadrícula que el dashboard -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div>
+                            <h2>Planificador Mensual</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Selecciona días para aplicar la modalidad o haz clic para ver detalle.</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" id="plan-prev-month"><i data-lucide="chevron-left" size="18"></i></button>
+                            <button class="btn" id="plan-next-month"><i data-lucide="chevron-right" size="18"></i></button>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn" id="plan-prev-month"><i data-lucide="chevron-left" size="18"></i></button>
-                        <button class="btn" id="plan-next-month"><i data-lucide="chevron-right" size="18"></i></button>
+
+                    <div class="planning-container">
+                        <div class="calendar-header" style="justify-content: center; margin-bottom: 1rem;">
+                            <h3 id="plan-month-name">Mes Año</h3>
+                        </div>
+                        <div class="calendar-grid" id="planning-grid" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                            <!-- Calendario de planificación generado por JS -->
+                        </div>
+                        
+                        <div class="bulk-actions" style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-main); border-radius: 15px; display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div id="selection-status" style="font-weight: 600; color: var(--primary);">Sin días seleccionados</div>
+                                <button class="btn" style="border: 1px solid #ddd; padding: 0.5rem 1rem;" onclick="clearSelection()">Deseleccionar</button>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: white; padding: 1rem; border-radius: 12px; border: 1px solid #eee;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <label style="font-size: 0.8rem; font-weight: 600;">⏰ Horario:</label>
+                                    <select id="bulk-start-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
+                                        <option value="08:00">08:00</option>
+                                        <option value="09:00" selected>09:00</option>
+                                        <option value="10:00">10:00</option>
+                                        <option value="11:00">11:00</option>
+                                        <option value="12:00">12:00</option>
+                                        <option value="13:00">13:00</option>
+                                        <option value="14:00">14:00</option>
+                                        <option value="15:00">15:00</option>
+                                    </select>
+                                    <span>a</span>
+                                    <select id="bulk-end-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
+                                        <option value="13:00">13:00</option>
+                                        <option value="14:00" selected>14:00</option>
+                                        <option value="15:00">15:00</option>
+                                        <option value="16:00">16:00</option>
+                                        <option value="17:00">17:00</option>
+                                        <option value="18:00">18:00</option>
+                                        <option value="19:00">19:00</option>
+                                        <option value="20:00">20:00</option>
+                                        <option value="21:00">21:00</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; flex: 1; justify-content: flex-end;">
+                                    <button class="btn" style="background: var(--primary); color: white;" onclick="applyBulkModality('office')">🏢 Presencial</button>
+                                    <button class="btn" style="background: #3b82f6; color: white;" onclick="applyBulkModality('online')">💻 Online</button>
+                                    <button class="btn" style="background: #94a3b8; color: white;" onclick="applyBulkModality('off')">❌ Cerrado</button>
+                                    <button class="btn" style="border: 1px solid #ef4444; color: #ef4444;" onclick="markAllMonthOff()">Cerrar Todo el Mes</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="planning-container">
-                    <div class="calendar-header" style="justify-content: center; margin-bottom: 1rem;">
-                        <h3 id="plan-month-name">Mes Año</h3>
-                    </div>
-                    <div class="calendar-grid" id="planning-grid" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
-                        <!-- Calendario de planificación generado por JS -->
-                    </div>
+                <!-- Panel de Resumen de Disponibilidad -->
+                <div class="glass-card" id="planning-summary-panel">
+                    <h3>Resumen del Día</h3>
+                    <p id="plan-selected-date" style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Selecciona un día para ver detalle</p>
                     
-                    <div class="bulk-actions" style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-main); border-radius: 15px; display: flex; flex-direction: column; gap: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <div id="selection-status" style="font-weight: 600; color: var(--primary);">Sin días seleccionados</div>
-                            <button class="btn" style="border: 1px solid #ddd; padding: 0.5rem 1rem;" onclick="clearSelection()">Deseleccionar</button>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: white; padding: 1rem; border-radius: 12px; border: 1px solid #eee;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <label style="font-size: 0.8rem; font-weight: 600;">⏰ Horario:</label>
-                                <select id="bulk-start-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
-                                    <option value="08:00">08:00</option>
-                                    <option value="09:00" selected>09:00</option>
-                                    <option value="10:00">10:00</option>
-                                    <option value="11:00">11:00</option>
-                                    <option value="12:00">12:00</option>
-                                    <option value="13:00">13:00</option>
-                                    <option value="14:00">14:00</option>
-                                    <option value="15:00">15:00</option>
-                                </select>
-                                <span>a</span>
-                                <select id="bulk-end-time" class="btn" style="border: 1px solid #ddd; background: white; padding: 0.4rem;">
-                                    <option value="13:00">13:00</option>
-                                    <option value="14:00" selected>14:00</option>
-                                    <option value="15:00">15:00</option>
-                                    <option value="16:00">16:00</option>
-                                    <option value="17:00">17:00</option>
-                                    <option value="18:00">18:00</option>
-                                    <option value="19:00">19:00</option>
-                                    <option value="20:00">20:00</option>
-                                    <option value="21:00">21:00</option>
-                                </select>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; flex: 1; justify-content: flex-end;">
-                                <button class="btn" style="background: var(--primary); color: white;" onclick="applyBulkModality('office')">🏢 Presencial</button>
-                                <button class="btn" style="background: #3b82f6; color: white;" onclick="applyBulkModality('online')">💻 Online</button>
-                                <button class="btn" style="background: #94a3b8; color: white;" onclick="applyBulkModality('off')">❌ Cerrado</button>
-                                <button class="btn" style="border: 1px solid #ef4444; color: #ef4444;" onclick="markAllMonthOff()">Cerrar Todo el Mes</button>
-                            </div>
-                        </div>
+                    <div id="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <!-- Stats here -->
+                    </div>
+
+                    <h4>Pacientes Agendados</h4>
+                    <div id="plan-appointments-list" style="margin-top: 1rem;">
+                        <p class="empty-msg">Sin citas en este día.</p>
                     </div>
                 </div>
             </div>
