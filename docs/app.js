@@ -629,25 +629,41 @@ async function loadInitialData() {
 }
 
 function setupRealtime() {
-    _supabase.channel('custom-all-channel')
+    _supabase.channel('cloud-sync')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
-        console.log('Realtime Update:', payload);
-        handleExternalChange(payload);
+        console.log('Realtime Appointment:', payload);
+        handleExternalChange(payload, 'appointments');
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, (payload) => {
+        console.log('Realtime Patient:', payload);
+        handleExternalChange(payload, 'patients');
     })
     .subscribe();
 }
 
-async function handleExternalChange(payload) {
-    if (payload.eventType === 'INSERT') {
-        state.appointments.push(payload.new);
-    } else if (payload.eventType === 'DELETE') {
-        state.appointments = state.appointments.filter(a => a.id !== payload.old.id);
-    } else if (payload.eventType === 'UPDATE') {
-        const idx = state.appointments.findIndex(a => a.id === payload.new.id);
-        if (idx !== -1) state.appointments[idx] = payload.new;
+async function handleExternalChange(payload, tableName) {
+    if (tableName === 'appointments') {
+        if (payload.eventType === 'INSERT') {
+            state.appointments.push(payload.new);
+        } else if (payload.eventType === 'DELETE') {
+            state.appointments = state.appointments.filter(a => a.id !== payload.old.id);
+        } else if (payload.eventType === 'UPDATE') {
+            const idx = state.appointments.findIndex(a => a.id === payload.new.id);
+            if (idx !== -1) state.appointments[idx] = payload.new;
+        }
+        renderCalendar();
+        renderAppointments();
+    } else if (tableName === 'patients') {
+        if (payload.eventType === 'INSERT') {
+            state.patients.push({ ...payload.new, records: [] });
+        } else if (payload.eventType === 'DELETE') {
+            state.patients = state.patients.filter(p => p.id !== payload.old.id);
+        } else if (payload.eventType === 'UPDATE') {
+            const idx = state.patients.findIndex(p => p.id === payload.new.id);
+            if (idx !== -1) state.patients[idx] = { ...state.patients[idx], ...payload.new };
+        }
+        renderPatients();
     }
-    renderCalendar();
-    renderAppointments();
 }
 
 async function migrateToCloud() {
