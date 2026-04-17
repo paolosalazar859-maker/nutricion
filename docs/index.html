@@ -326,6 +326,14 @@
                     <i data-lucide="x"></i>
                 </button>
             </div>
+
+            <!-- Antecedentes Fijos -->
+            <div id="history-patient-antecedentes-wrapper" style="margin-bottom: 2rem; background: #fffbeb; border: 1px solid #fef3c7; padding: 1rem; border-radius: 12px; display: none;">
+                <h4 style="color: #92400e; font-size: 0.8rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 5px;">
+                    <i data-lucide="alert-circle" size="14"></i> ANTECEDENTES MÉDICOS
+                </h4>
+                <p id="history-patient-antecedentes" style="font-size: 0.9rem; color: #78350f; font-weight: 500; margin: 0;"></p>
+            </div>
             
             <h3>Nueva Evolución</h3>
             <form id="history-form" style="margin-bottom: 2rem; background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -401,6 +409,10 @@
                 <div class="form-group">
                     <label>Email</label>
                     <input type="email" id="manage-patient-email">
+                </div>
+                <div class="form-group">
+                    <label>Antecedentes Médicos (Alergias, Patologías, Medicamentos)</label>
+                    <textarea id="manage-patient-antecedentes" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; padding: 0.5rem; min-height: 80px;"></textarea>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button type="button" class="btn" style="flex: 1; background: #f1f5f9;" id="close-patient-modal">Cancelar</button>

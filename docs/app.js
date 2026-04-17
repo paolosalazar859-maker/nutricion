@@ -532,6 +532,7 @@ window.openPatientModal = (id = null) => {
             document.getElementById('manage-patient-rut').value = p.rut || "";
             document.getElementById('manage-patient-phone').value = p.phone || "";
             document.getElementById('manage-patient-email').value = p.email || "";
+            document.getElementById('manage-patient-antecedentes').value = p.antecedentes || "";
         }
     } else {
         title.innerText = "Enrolar Paciente";
@@ -561,6 +562,17 @@ window.openHistory = async (pid) => {
     p.records = recs || [];
     
     renderHistoryRecords(); 
+
+    // Visualización de Antecedentes Fijos
+    const antBox = document.getElementById('history-patient-antecedentes-wrapper');
+    const antText = document.getElementById('history-patient-antecedentes');
+    if (p.antecedentes) {
+        antText.innerText = p.antecedentes;
+        antBox.style.display = 'block';
+    } else {
+        antBox.style.display = 'none';
+    }
+
     document.getElementById('patient-history-overlay').style.display = 'flex'; 
 };
 
@@ -755,7 +767,8 @@ function setupEventListeners() {
             name: document.getElementById('manage-patient-name').value,
             rut: document.getElementById('manage-patient-rut').value.toLowerCase().replace(/\./g,'').replace(/-/g,''),
             phone: document.getElementById('manage-patient-phone').value,
-            email: document.getElementById('manage-patient-email').value
+            email: document.getElementById('manage-patient-email').value,
+            antecedentes: document.getElementById('manage-patient-antecedentes').value
         };
 
         let result;
