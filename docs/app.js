@@ -1188,4 +1188,20 @@ window.exportViewToPDF = async () => {
     }
 };
 
+// --- Welcome Screen Logic ---
+window.enterApp = () => {
+    const welcome = document.getElementById('welcome-screen');
+    if (welcome) {
+        welcome.style.opacity = '0';
+        welcome.style.transition = 'opacity 0.6s ease';
+        setTimeout(() => {
+            welcome.style.display = 'none';
+            document.body.classList.remove('hide-ui');
+            if (window.lucide) lucide.createIcons();
+            renderCalendar();
+            renderAppointments();
+        }, 600);
+    }
+};
+
 init();

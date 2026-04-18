@@ -14,7 +14,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body>
+<body class="hide-ui">
+    <!-- Welcome / Landing Screen -->
+    <div id="welcome-screen" class="welcome-screen">
+        <div class="welcome-content">
+            <div class="welcome-hero">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🥦</div>
+                <h1>Eleva tu Consulta al Siguiente Nivel</h1>
+                <p>La plataforma integral para nutricionistas que buscan profesionalismo, eficiencia y resultados basados en datos.</p>
+                <button class="btn btn-start" onclick="enterApp()">
+                    Comenzar Consulta <i data-lucide="chevron-right" style="vertical-align: middle; margin-left: 5px;"></i>
+                </button>
+            </div>
+            <div class="welcome-features">
+                <div class="welcome-card">
+                    <i data-lucide="file-text"></i>
+                    <div>
+                        <h4>Reportes Premium</h4>
+                        <p>Genera fichas clínicas en PDF con diseño profesional en un solo clic.</p>
+                    </div>
+                </div>
+                <div class="welcome-card">
+                    <i data-lucide="cloud-lightning"></i>
+                    <div>
+                        <h4>Sincronización Cloud</h4>
+                        <p>Tus datos siempre seguros y actualizados en todos tus dispositivos.</p>
+                    </div>
+                </div>
+                <div class="welcome-card">
+                    <i data-lucide="check-circle-2"></i>
+                    <div>
+                        <h4>Formato RUT Chile</h4>
+                        <p>Ingreso estandarizado y automático para una base de datos impecable.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <nav class="sidebar">
         <div class="logo">
             <span>🥦 OptimizateNutri</span>
