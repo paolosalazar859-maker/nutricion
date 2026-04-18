@@ -1215,19 +1215,14 @@ window.updateDashboard = () => {
     
     const todayStr = formatDate(new Date());
     const todayApps = state.appointments.filter(app => formatDate(new Date(app.date)) === todayStr);
-    
-    const price = parseInt(state.profile.price) || 0;
-    const estimatedRevenue = todayApps.length * price;
 
     // 2. Actualizar DOM de KPIs
     const elPatients = document.getElementById('stat-patients');
     const elApps = document.getElementById('stat-appointments');
-    const elRev = document.getElementById('stat-revenue');
     const elAgenda = document.getElementById('appointments-list');
 
     if (elPatients) elPatients.innerText = totalPatients;
     if (elApps) elApps.innerText = todayApps.length;
-    if (elRev) elRev.innerText = `$${estimatedRevenue.toLocaleString('es-CL')}`;
 
     // 3. Renderizar Agenda en Dashboard con nuevo diseño
     if (elAgenda) {
