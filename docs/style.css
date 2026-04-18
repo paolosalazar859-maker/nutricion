@@ -3,16 +3,17 @@
 :root {
     --primary: #6d28d9;
     --primary-light: #a78bfa;
-    --secondary: #10b981;
+    --secondary: #22d3ee; 
     --accent: #f472b6;
     --bg-main: #f8f6ff;
     --bg-sidebar: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-bg: rgba(255, 255, 255, 0.4);
     --text-main: #0f172a;
     --text-muted: #64748b;
-    --glass-border: rgba(255, 255, 255, 0.5);
-    --shadow-premium: 0 20px 40px -10px rgba(109, 40, 217, 0.15);
-    --radius: 20px;
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --shadow-premium: 0 25px 50px -12px rgba(109, 40, 217, 0.2);
+    --glow: 0 0 20px rgba(109, 40, 217, 0.3);
+    --radius: 24px;
 }
 
 * {
@@ -442,16 +443,29 @@ main {
     }
 }
 
-/* --- Aurora Background --- */
+/* --- Aurora Nova (Mesh Gradient) --- */
 .welcome-screen {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: linear-gradient(135deg, #f8f6ff 0%, #ede9fe 100%);
+    background: #f8f6ff;
     display: flex;
     align-items: center; justify-content: center;
     z-index: 1000;
     overflow: hidden;
+}
+
+/* Capa de Ruido Digital (Grain) */
+.welcome-screen::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url('https://grainy-gradients.vercel.app/noise.svg');
+    opacity: 0.15;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .welcome-screen::before {
@@ -459,112 +473,134 @@ main {
     position: absolute;
     top: -50%; left: -50%;
     width: 200%; height: 200%;
-    background: radial-gradient(circle at 30% 30%, rgba(109, 40, 217, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 70% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 10% 80%, rgba(109, 40, 217, 0.05) 0%, transparent 40%);
-    animation: aurora 20s linear infinite;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(109, 40, 217, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 30% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(20, 184, 166, 0.2) 0%, transparent 40%);
+    animation: auroraNova 30s linear infinite;
+    filter: blur(100px);
 }
 
-@keyframes aurora {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes auroraNova {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 .welcome-content {
     position: relative;
+    z-index: 10;
     max-width: 1100px;
     width: 90%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 6rem;
     align-items: center;
-    animation: welcomeFadeIn 1s cubic-bezier(0.23, 1, 0.32, 1);
+    animation: welcomeEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes welcomeFadeIn {
-    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+@keyframes welcomeEnter {
+    from { opacity: 0; transform: translateY(50px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .welcome-hero h1 {
-    font-size: 4rem;
-    line-height: 1;
-    margin-bottom: 2rem;
-    font-weight: 800;
+    font-size: 5rem;
+    line-height: 0.9;
+    margin-bottom: 2.5rem;
+    font-weight: 900;
     color: var(--text-main);
-    letter-spacing: -0.04em;
+    letter-spacing: -0.06em;
 }
 
 .welcome-hero h1 span {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: block;
+    background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(109, 40, 217, 0.2));
 }
 
 .welcome-hero p {
-    font-size: 1.2rem;
-    color: var(--text-muted);
-    margin-bottom: 3rem;
-    line-height: 1.8;
+    font-size: 1.3rem;
+    color: #475569;
+    margin-bottom: 3.5rem;
+    line-height: 1.6;
+    max-width: 500px;
+}
+
+.welcome-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .welcome-card {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    padding: 2rem;
-    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 2.2rem;
+    border-radius: 32px;
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1.2rem;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    gap: 1.8rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: default;
 }
 
 .welcome-card:hover {
-    transform: translateX(10px) scale(1.02);
-    background: rgba(255, 255, 255, 0.8);
-    border-color: var(--primary-light);
-    box-shadow: 0 20px 50px rgba(109, 40, 217, 0.1);
+    transform: translateX(15px);
+    background: rgba(255, 255, 255, 0.7);
+    border-color: var(--secondary);
+    box-shadow: 0 20px 60px rgba(34, 211, 238, 0.2);
 }
 
 .welcome-card i {
     color: var(--primary);
-    background: white;
-    padding: 1rem;
-    border-radius: 18px;
-    box-shadow: 0 5px 15px rgba(109, 40, 217, 0.1);
+    background: linear-gradient(135deg, #ffffff, #f1f5f9);
+    padding: 1.2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-premium);
+    transition: transform 0.3s ease;
 }
 
-.welcome-card h4 { font-weight: 700; color: #1e293b; margin-bottom: 0.4rem; }
-.welcome-card p { font-size: 0.9rem; line-height: 1.5; color: #64748b; }
+.welcome-card:hover i {
+    transform: rotate(-5deg) scale(1.1);
+    color: var(--secondary);
+}
+
+.welcome-card h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem; }
+.welcome-card p { font-size: 0.95rem; color: #64748b; line-height: 1.6; }
 
 .btn-start {
-    padding: 1.4rem 3rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-radius: 50px;
+    padding: 1.5rem 3.5rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    border-radius: 100px;
     background: var(--text-main);
     color: white;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.1);
     cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+    display: flex; align-items: center; gap: 15px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
 }
 
 .btn-start:hover {
     background: var(--primary);
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(109, 40, 217, 0.3);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(109, 40, 217, 0.4);
 }
 
-@media (max-width: 950px) {
-    .welcome-content { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+@media (max-width: 1100px) {
+    .welcome-content { grid-template-columns: 1fr; gap: 4rem; text-align: center; }
     .welcome-card { text-align: left; }
     .btn-start { margin: 0 auto; }
-    .welcome-hero h1 { font-size: 3rem; }
+    .welcome-hero h1 { font-size: 4rem; }
+    .welcome-hero p { margin: 0 auto 3.5rem auto; }
 }
 
 /* Sidebar hide logic */
