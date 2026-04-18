@@ -44,18 +44,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Delegación de Eventos para Botones PDF
+    // Delegación de Eventos para Botones PDF de registros individuales
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-export-pdf');
         if (btn) {
             const rid = btn.getAttribute('data-record-id');
             if (rid) window.exportToPDF(rid, { currentTarget: btn });
         }
-
-        // --- Botones de Cabecera Historial ---
-        if (e.target.closest('.btn-history-export-view')) window.exportViewToPDF();
-        if (e.target.closest('.btn-history-print')) window.print();
-        if (e.target.closest('.btn-history-close')) window.closeHistoryModal();
     });
 
     try {
@@ -606,7 +601,11 @@ window.openHistory = async (pid) => {
     if (window.lucide) lucide.createIcons();
 };
 
-window.closeHistoryModal = () => { document.getElementById('patient-history-overlay').style.display = 'none'; };
+// --- History Functions ---
+window.closeHistoryModal = () => { 
+    const overlay = document.getElementById('patient-history-overlay');
+    if (overlay) overlay.style.display = 'none'; 
+};
 
 function renderHistoryRecords() {
     const p = state.patients.find(x => x.id === state.activePatientId);
