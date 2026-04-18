@@ -15,9 +15,7 @@ let state = {
         specialty: "Nutrición Deportiva",
         email: "contacto@paolo.cl",
         whatsapp: "+56912345678",
-        sis: "",
-        university: "",
-        address: "Consulta Virtual",
+        whatsapp: "+56912345678",
         price: "35000",
         bio: "Experto en nutrición deportiva y planes personalizados.",
         availability: {
@@ -353,8 +351,6 @@ function loadProfile() {
         'profile-specialty-display': p.specialty,
         'profile-name': p.name,
         'profile-specialty': p.specialty,
-        'profile-sis': p.sis || "",
-        'profile-university': p.university || "",
         'profile-whatsapp': p.whatsapp || "",
         'profile-price': p.price || "",
         'profile-email': p.email,
@@ -920,7 +916,7 @@ function setupEventListeners() {
             s: document.querySelector(`.avail-start[data-index="${i}"]`).value,
             e: document.querySelector(`.avail-end[data-index="${i}"]`).value
         }));
-        state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, sis: document.getElementById('profile-sis').value, university: document.getElementById('profile-university').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: "" } };
+        state.profile = { ...state.profile, name: document.getElementById('profile-name').value, specialty: document.getElementById('profile-specialty').value, whatsapp: document.getElementById('profile-whatsapp').value, price: document.getElementById('profile-price').value, email: document.getElementById('profile-email').value, address: document.getElementById('profile-address').value, bio: document.getElementById('profile-bio').value, availability: { ...state.profile.availability, weekly: weekly, blocked: "" } };
         saveProfile();
         alert('Perfil actualizado.');
     };
@@ -1071,7 +1067,6 @@ window.exportToPDF = async (recordId, event) => {
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
         doc.text(prof.specialty, 190, 23, { align: 'right' });
-        if (prof.sis) doc.text(`Registro SIS: ${prof.sis}`, 190, 28, { align: 'right' });
 
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(16);
