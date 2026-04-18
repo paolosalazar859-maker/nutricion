@@ -2,23 +2,24 @@
 
 :root {
     --primary: #6d28d9;
-    --primary-light: #8b5cf6;
-    --secondary: #d946ef;
-    --bg-main: #f5f3ff;
+    --primary-light: #a78bfa;
+    --secondary: #10b981;
+    --accent: #f472b6;
+    --bg-main: #fcfaff;
     --bg-sidebar: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.85);
-    --text-main: #1e1b4b;
-    --text-muted: #6b7280;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
     --glass-border: rgba(255, 255, 255, 0.5);
-    --shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1);
-    --radius: 16px;
+    --shadow-premium: 0 20px 40px -10px rgba(109, 40, 217, 0.15);
+    --radius: 20px;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif;
 }
 
 body {
@@ -27,6 +28,7 @@ body {
     display: flex;
     min-height: 100vh;
     overflow-x: hidden;
+    letter-spacing: -0.01em;
 }
 
 /* Sidebar */
@@ -440,108 +442,129 @@ main {
     }
 }
 
-/* --- Welcome / Landing Screen --- */
+/* --- Aurora Background --- */
 .welcome-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle at top right, #f5f3ff, #ede9fe);
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, #fdfaff 0%, #f5f3ff 100%);
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; justify-content: center;
     z-index: 1000;
-    padding: 2rem;
-    overflow-y: auto;
+    overflow: hidden;
+}
+
+.welcome-screen::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(109, 40, 217, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(244, 114, 182, 0.05) 0%, transparent 40%);
+    animation: aurora 20s linear infinite;
+}
+
+@keyframes aurora {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .welcome-content {
-    max-width: 1000px;
-    width: 100%;
+    position: relative;
+    max-width: 1100px;
+    width: 90%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    gap: 5rem;
     align-items: center;
+    animation: welcomeFadeIn 1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-@media (max-width: 850px) {
-    .welcome-content { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+@keyframes welcomeFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .welcome-hero h1 {
-    font-size: 3.5rem;
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 2rem;
     font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.04em;
+}
+
+.welcome-hero h1 span {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .welcome-hero p {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     color: var(--text-muted);
-    margin-bottom: 2.5rem;
-    line-height: 1.6;
-}
-
-.welcome-features {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    margin-bottom: 3rem;
+    line-height: 1.8;
 }
 
 .welcome-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    padding: 1.5rem;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 2rem;
+    border-radius: 24px;
     display: flex;
-    gap: 1rem;
-    transition: transform 0.3s ease;
-    animation: float 6s ease-in-out infinite;
+    gap: 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.welcome-card:nth-child(2) { animation-delay: 1s; }
-.welcome-card:nth-child(3) { animation-delay: 2s; }
-
-.welcome-card:hover { 
-    transform: translateY(-5px);
+.welcome-card:hover {
+    transform: translateX(10px) scale(1.02);
+    background: rgba(255, 255, 255, 0.8);
     border-color: var(--primary-light);
+    box-shadow: 0 20px 50px rgba(109, 40, 217, 0.1);
 }
 
 .welcome-card i {
     color: var(--primary);
-    background: rgba(109, 40, 217, 0.1);
-    padding: 0.8rem;
-    border-radius: 12px;
-    height: fit-content;
+    background: white;
+    padding: 1rem;
+    border-radius: 18px;
+    box-shadow: 0 5px 15px rgba(109, 40, 217, 0.1);
 }
 
-.welcome-card h4 { margin-bottom: 0.3rem; }
-.welcome-card p { font-size: 0.85rem; color: var(--text-muted); }
+.welcome-card h4 { font-weight: 700; color: #1e293b; margin-bottom: 0.4rem; }
+.welcome-card p { font-size: 0.9rem; line-height: 1.5; color: #64748b; }
 
 .btn-start {
-    padding: 1.2rem 2.5rem;
+    padding: 1.4rem 3rem;
     font-size: 1.1rem;
-    font-weight: 600;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    font-weight: 700;
+    border-radius: 50px;
+    background: var(--text-main);
     color: white;
-    box-shadow: 0 10px 20px -10px var(--primary);
-    transform: scale(1);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
     transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
 }
 
 .btn-start:hover {
-    transform: scale(1.05);
-    box-shadow: 0 15px 30px -10px var(--primary);
+    background: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(109, 40, 217, 0.3);
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+@media (max-width: 950px) {
+    .welcome-content { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+    .welcome-card { text-align: left; }
+    .btn-start { margin: 0 auto; }
+    .welcome-hero h1 { font-size: 3rem; }
 }
 
 /* Sidebar hide logic */
