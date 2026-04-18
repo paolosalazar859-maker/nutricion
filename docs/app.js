@@ -1196,15 +1196,24 @@ window.exportViewToPDF = async () => {
 window.enterApp = () => {
     const welcome = document.getElementById('welcome-screen');
     if (welcome) {
+        // 1. Mostrar interfaz principal instantáneamente
+        document.body.classList.remove('hide-ui');
+        
+        // 2. Iniciar desvanecimiento acelerado (300ms)
+        welcome.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         welcome.style.opacity = '0';
-        welcome.style.transition = 'opacity 0.6s ease';
+        welcome.style.transform = 'scale(1.05)'; // Efecto zoom out elegante
+        
+        // 3. Renderizar datos en paralelo
+        if (window.lucide) lucide.createIcons();
+        renderCalendar();
+        renderAppointments();
+        updateDashboard();
+
+        // 4. Eliminar del DOM después de la animación corta
         setTimeout(() => {
             welcome.style.display = 'none';
-            document.body.classList.remove('hide-ui');
-            if (window.lucide) lucide.createIcons();
-            renderCalendar();
-            renderAppointments();
-        }, 600);
+        }, 300);
     }
 };
 
