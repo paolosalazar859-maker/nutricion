@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #6d28d9;
-    --primary-light: #a78bfa;
-    --secondary: #22d3ee; 
-    --accent: #f472b6;
+    --primary: #6b21a8; /* Morado Vibrante */
+    --primary-light: #a855f7; /* Lavanda Brillante */
+    --secondary: #4c1d95; /* Violeta Profundo */
+    --accent: #d8b4fe; /* Lila Pálido */
     --bg-main: #f8f6ff;
     --bg-sidebar: #ffffff;
     --card-bg: rgba(255, 255, 255, 0.4);
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --shadow-premium: 0 25px 50px -12px rgba(109, 40, 217, 0.2);
-    --glow: 0 0 20px rgba(109, 40, 217, 0.3);
+    --text-main: #2e1065; /* Morado Oscuro para texto */
+    --text-muted: #7e22ce; /* Morado medio */
+    --glass-border: rgba(168, 85, 247, 0.2);
+    --shadow-premium: 0 25px 50px -12px rgba(107, 33, 168, 0.15);
+    --glow: 0 0 20px rgba(168, 85, 247, 0.2);
     --radius: 24px;
 }
 
@@ -474,11 +474,11 @@ main {
     top: -50%; left: -50%;
     width: 200%; height: 200%;
     background: 
-        radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.4) 0%, transparent 40%),
-        radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.3) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(109, 40, 217, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(107, 33, 168, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(88, 28, 135, 0.3) 0%, transparent 40%),
         radial-gradient(circle at 30% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 40%),
-        radial-gradient(circle at 70% 80%, rgba(20, 184, 166, 0.2) 0%, transparent 40%);
+        radial-gradient(circle at 70% 80%, rgba(76, 29, 149, 0.2) 0%, transparent 40%);
     animation: auroraNova 30s linear infinite;
     filter: blur(100px);
 }
@@ -517,15 +517,15 @@ main {
 
 .welcome-hero h1 span {
     display: block;
-    background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
+    background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 15px rgba(109, 40, 217, 0.2));
+    filter: drop-shadow(0 0 15px rgba(107, 33, 168, 0.3));
 }
 
 .welcome-hero p {
     font-size: 1.3rem;
-    color: #475569;
+    color: var(--text-muted);
     margin-bottom: 3.5rem;
     line-height: 1.6;
     max-width: 500px;
@@ -554,13 +554,13 @@ main {
 .welcome-card:hover {
     transform: translateX(15px);
     background: rgba(255, 255, 255, 0.7);
-    border-color: var(--secondary);
-    box-shadow: 0 20px 60px rgba(34, 211, 238, 0.2);
+    border-color: var(--primary-light);
+    box-shadow: 0 20px 60px rgba(107, 33, 168, 0.2);
 }
 
 .welcome-card i {
     color: var(--primary);
-    background: linear-gradient(135deg, #ffffff, #f1f5f9);
+    background: linear-gradient(135deg, #ffffff, #f5f3ff);
     padding: 1.2rem;
     border-radius: 20px;
     box-shadow: var(--shadow-premium);
@@ -569,11 +569,11 @@ main {
 
 .welcome-card:hover i {
     transform: rotate(-5deg) scale(1.1);
-    color: var(--secondary);
+    color: var(--primary-light);
 }
 
-.welcome-card h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem; }
-.welcome-card p { font-size: 0.95rem; color: #64748b; line-height: 1.6; }
+.welcome-card h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-main); }
+.welcome-card p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
 
 .btn-start {
     padding: 1.5rem 3.5rem;
@@ -586,13 +586,13 @@ main {
     cursor: pointer;
     display: flex; align-items: center; gap: 15px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
+    box-shadow: 0 20px 40px rgba(46, 16, 101, 0.3);
 }
 
 .btn-start:hover {
     background: var(--primary);
     transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 25px 50px rgba(109, 40, 217, 0.4);
+    box-shadow: 0 25px 50px rgba(107, 33, 168, 0.4);
 }
 
 @media (max-width: 1100px) {
