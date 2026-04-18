@@ -5,7 +5,7 @@
     --primary-light: #a78bfa;
     --secondary: #10b981;
     --accent: #f472b6;
-    --bg-main: #fcfaff;
+    --bg-main: #f8f6ff;
     --bg-sidebar: #ffffff;
     --card-bg: rgba(255, 255, 255, 0.7);
     --text-main: #0f172a;
@@ -447,7 +447,7 @@ main {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: linear-gradient(135deg, #fdfaff 0%, #f5f3ff 100%);
+    background: linear-gradient(135deg, #f8f6ff 0%, #ede9fe 100%);
     display: flex;
     align-items: center; justify-content: center;
     z-index: 1000;
@@ -459,9 +459,9 @@ main {
     position: absolute;
     top: -50%; left: -50%;
     width: 200%; height: 200%;
-    background: radial-gradient(circle at 30% 30%, rgba(109, 40, 217, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 10% 80%, rgba(244, 114, 182, 0.05) 0%, transparent 40%);
+    background: radial-gradient(circle at 30% 30%, rgba(109, 40, 217, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(109, 40, 217, 0.05) 0%, transparent 40%);
     animation: aurora 20s linear infinite;
 }
 
