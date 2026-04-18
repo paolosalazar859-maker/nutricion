@@ -14,6 +14,10 @@
       "all": false,
       "dialog": {
         "all": true
+      },
+      "window": {
+        "all": true,
+        "print": true
       }
     },
     "bundle": {
