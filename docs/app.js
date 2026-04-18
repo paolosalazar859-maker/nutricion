@@ -607,6 +607,10 @@ window.closeHistoryModal = () => {
     if (overlay) overlay.style.display = 'none'; 
 };
 
+window.printHistory = () => {
+    window.print();
+};
+
 function renderHistoryRecords() {
     const p = state.patients.find(x => x.id === state.activePatientId);
     const list = document.getElementById('history-records-list');

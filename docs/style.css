@@ -385,69 +385,67 @@ main {
 }
 
 /* --- Print Styles --- */
+/* --- Print Styles --- */
 @media print {
-    /* Hide everything by default */
-    body *, .sidebar, .header, .nav-menu, .welcome-screen, .dashboard-grid, .quick-actions {
+    /* Hide specific non-print containers instead of body * */
+    .sidebar, .header, .nav-menu, .welcome-screen, #welcome-screen, main, 
+    .quick-actions, .dashboard-grid, #modal-overlay, #patient-modal, #pdf-preview-overlay {
         display: none !important;
     }
 
-    /* Show only the History Overlay and make it behave like a normal page */
+    /* Reset body and html for full-page print */
     html, body {
         height: auto !important;
         overflow: visible !important;
         background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     #patient-history-overlay {
         display: block !important;
-        position: relative !important;
-        visibility: visible !important;
-        background: white !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
         width: 100% !important;
-        left: 0 !important; top: 0 !important;
-    }
-
-    #patient-history-overlay * {
-        display: block; /* Show children */
-        visibility: visible !important;
+        background: white !important;
+        z-index: 9999 !important;
     }
 
     .modal {
+        background: white !important;
         position: relative !important;
-        max-width: 100% !important;
         width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
         box-shadow: none !important;
         border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        background: transparent !important;
     }
 
-    /* Professional clinical formatting */
-    h2, h3, h4 { color: black !important; }
-    p, span, strong { color: #1a1a1a !important; }
+    /* High contrast clinical text */
+    h2, h3, h4, p, span, strong, div { color: black !important; }
 
     /* Hide UI controls during print */
-    .btn, .btn i, #history-form, .btn-primary, #view-history-list, #view-history-charts {
+    .btn, .btn i, #history-form {
         display: none !important;
     }
 
     .history-card {
-        border: 1px solid #eee !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
         padding: 1.5rem !important;
         margin-bottom: 2rem !important;
         break-inside: avoid;
         page-break-inside: avoid;
     }
 
-    /* Antecedentes special box */
     #history-patient-antecedentes-wrapper {
+        display: block !important;
         border: 1px solid #eee !important;
-        background: #fafafa !important;
-        margin-bottom: 2rem !important;
+        background: #fdfdfd !important;
         padding: 1rem !important;
+        margin-bottom: 2rem !important;
     }
 }
 
