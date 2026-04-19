@@ -289,13 +289,17 @@
         }
 
         const config = {
-            name: urlParams.get('n') || "Nutricionista",
-            specialty: urlParams.get('s') || "Especialista en Salud",
-            whatsapp: urlParams.get('wa') || "56912345678",
-            sis: urlParams.get('sis') || "",
-            university: urlParams.get('u') || "",
-            blocked: (urlParams.get('blk') || "").split(','),
-            weekly: weekly,
+            name: "Nutricionista",
+            specialty: "Especialista en Salud",
+            whatsapp: "56912345678",
+            sis: "",
+            university: "",
+            blocked: [],
+            weekly: schRaw.split(',').map(item => ({
+                m: item[0],
+                s: formatTime(item.substring(1,5)),
+                e: formatTime(item.substring(5,9))
+            })),
             overrides: overrides
         };
 
@@ -305,7 +309,32 @@
         let selectedTime = null;
         let currentDate = new Date();
 
-        function init() {
+        async function init() {
+            const u = urlParams.get('u');
+            if (u) {
+                try {
+                    const { data, error } = await _supabase.from('public_profiles').select('*').eq('id', u).maybeSingle();
+                    if (data && data.config) {
+                        const c = data.config;
+                        config.name = c.name || config.name;
+                        config.specialty = c.specialty || config.specialty;
+                        config.whatsapp = c.whatsapp || config.whatsapp;
+                        config.bio = c.bio || "";
+                        config.price = c.price || "";
+                        config.weekly = c.availability?.weekly || config.weekly;
+                        config.overrides = c.availability?.overrides || config.overrides;
+                        config.blocked = (c.availability?.blocked || "").split(',');
+                    }
+                } catch (e) { console.error("Cloud config fetch failed:", e); }
+            } else {
+                // Fallback a params tradicionales (retrocompatibilidad)
+                config.name = urlParams.get('n') || config.name;
+                config.specialty = urlParams.get('s') || config.specialty;
+                config.whatsapp = urlParams.get('wa') || config.whatsapp;
+                config.sis = urlParams.get('sis') || "";
+                config.university = urlParams.get('u_old') || ""; // Cambié u por u_old para no chocar
+            }
+
             document.getElementById('prof-name').innerText = config.name;
             document.getElementById('prof-avatar').innerText = config.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('prof-specialty').innerText = config.specialty;

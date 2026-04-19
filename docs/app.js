@@ -11,6 +11,7 @@ let state = {
     selectedPlanningDates: [],
     appointments: [],
     profile: JSON.parse(localStorage.getItem('nutriProfile')) || {
+        id: "", // ID público único
         name: "Paolo Salazar",
         specialty: "Nutrición Deportiva",
         email: "contacto@paolo.cl",
@@ -427,18 +428,17 @@ window.generateBookingLink = () => {
         return `${dateKey}_${mapping[val.m]}${s}${e}`;
     }).join(',');
 
-    const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
-    const params = new URLSearchParams({
-        wa: p.whatsapp.replace(/\D/g, ''),
-        n: p.name,
-        s: p.specialty,
-        sis: p.sis || "",
-        u: p.university || "",
-        sch: schEncoded,
-        ov: ovEncoded
-    });
+    // Si no tiene ID público, generamos uno y sincronizamos
+    if (!state.profile.id) {
+        state.profile.id = 'paolo-' + Math.random().toString(36).substring(2, 9);
+        saveProfile();
+    }
 
-    const link = `${baseUrl}?${params.toString()}`;
+    // Sincronizar con Supabase antes de generar el link
+    await syncPublicConfig();
+
+    const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
+    const link = `${baseUrl}?u=${state.profile.id}`;
     
     // Copy to clipboard with visual feedback
     const dummy = document.createElement('textarea');
@@ -448,8 +448,29 @@ window.generateBookingLink = () => {
     document.execCommand('copy');
     document.body.removeChild(dummy);
     
-    alert("¡Enlace copiado con éxito! Ya puedes pegarlo donde desees.");
+    alert("¡Enlace inteligente copiado! Ahora es mucho más corto y profesional.");
 };
+
+async function syncPublicConfig() {
+    try {
+        const publicData = {
+            id: state.profile.id,
+            config: {
+                name: state.profile.name,
+                specialty: state.profile.specialty,
+                whatsapp: state.profile.whatsapp,
+                bio: state.profile.bio,
+                price: state.profile.price,
+                availability: state.profile.availability
+            },
+            updated_at: new Date()
+        };
+        const { error } = await _supabase.from('public_profiles').upsert([publicData]);
+        if (error) console.error("Error syncing public config:", error);
+    } catch (e) {
+        console.error("Sync failed:", e);
+    }
+}
 
 function daysArray() { return [0,1,2,3,4,5,6]; }
 
