@@ -11,183 +11,208 @@
     <style>
         body {
             background-color: var(--bg-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
+            color: var(--text-main);
+            line-height: 1.6;
         }
-        .container {
-            width: 100%;
-            max-width: 500px;
-        }
-        .prof-info {
+        .landing-header {
+            padding: 4rem 1rem;
             text-align: center;
-            margin-bottom: 2rem;
+            background: linear-gradient(to bottom, #fff, var(--bg-main));
         }
-        .prof-avatar {
-            width: 80px;
-            height: 80px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 1rem;
+        .hero-title {
+            font-size: 3.5rem;
             font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: -0.05em;
         }
-        .booking-step {
-            margin-bottom: 2rem;
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2rem;
         }
-        .time-grid {
+        .section {
+            padding: 4rem 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        .time-btn {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .time-btn:hover {
-            border-color: var(--secondary);
-            background: rgba(219, 39, 119, 0.05);
-            transform: scale(1.05);
-        }
-        .time-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             align-items: center;
-            z-index: 1000;
-            padding: 1rem;
         }
-        .modal {
+        .price-card {
             background: white;
             padding: 2rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            position: relative;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-premium);
+            transition: transform 0.3s ease;
         }
-        .modal-step {
-            display: none;
-            animation: fadeIn 0.3s ease;
+        .price-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--secondary);
         }
-        .modal-step.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-        }
-        .choice-btn {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            text-align: left;
-            border: 1px solid #eee;
-            background: #fff;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.2s;
-        }
-        .choice-btn:hover {
-            border-color: var(--primary);
-            background: rgba(109, 40, 217, 0.03);
-            transform: translateX(5px);
-        }
-        .choice-btn i {
+        .tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: var(--accent);
             color: var(--secondary);
-            background: var(--bg-main);
-            padding: 10px;
-            border-radius: 12px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .booking-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 32px;
+            box-shadow: 0 30px 60px -12px rgba(30, 27, 75, 0.1);
+            margin-top: 4rem;
+        }
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .section { padding: 2rem 1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="glass-card">
-            <div class="prof-info">
-                <div class="prof-avatar" id="prof-avatar">PS</div>
-                <h2 id="prof-name">Cargando...</h2>
-                <p id="prof-specialty" style="color: var(--text-muted)">Nutricionista</p>
-                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                    <span id="prof-sis"></span> <br>
-                    <span id="prof-university"></span>
-                </div>
-            </div>
+    <header class="landing-header">
+        <div class="prof-avatar" id="prof-avatar" style="width: 120px; height: 120px; font-size: 3rem;">AS</div>
+        <h1 class="hero-title" id="prof-name">Alexandra Salazar</h1>
+        <p class="hero-subtitle" id="prof-specialty">Nutricionista - Especialista en Salud y Estilo de Vida Sostenible</p>
+        <p style="max-width: 600px; margin: 0 auto; color: var(--text-muted); font-size: 1.1rem;">
+            "No es una dieta, es un estilo de vida. Te ayudo a mejorar tu relación con la comida sin culpas ni restricciones."
+        </p>
+    </header>
 
-            <div class="booking-step">
-                <h3 style="margin-bottom: 1rem;">1. Selecciona el Día</h3>
-                <div class="calendar-container" style="box-shadow: none; padding: 0;">
-                    <div class="calendar-header">
-                        <h4 id="current-month">Abril 2024</h4>
-                        <div style="display: flex; gap: 5px;">
-                            <button class="btn" id="prev-month"><i data-lucide="chevron-left"></i></button>
-                            <button class="btn" id="next-month"><i data-lucide="chevron-right"></i></button>
+    <section class="section" style="background: white; border-radius: 40px; margin-top: -2rem;">
+        <div class="grid-2">
+            <div>
+                <span class="tag">Mi Metodología</span>
+                <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--primary);">Un enfoque consciente y flexible.</h2>
+                <p style="margin-bottom: 1rem;">Mi objetivo es enseñarte a comer de forma saludable, consciente y sostenible en el tiempo. Juntos trabajaremos en:</p>
+                <ul style="list-style: none; display: grid; gap: 1rem;">
+                    <li style="display: flex; gap: 10px; align-items: center;"><i data-lucide="check-circle" color="var(--secondary)"></i> Lectura de etiquetas nutricionales.</li>
+                    <li style="display: flex; gap: 10px; align-items: center;"><i data-lucide="check-circle" color="var(--secondary)"></i> Comprensión de porciones adecuadas.</li>
+                    <li style="display: flex; gap: 10px; align-items: center;"><i data-lucide="check-circle" color="var(--secondary)"></i> Mejora de la relación con los alimentos.</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 2.5rem; border-radius: 30px; border: 1px solid var(--glass-border);">
+                <h4 style="margin-bottom: 1rem; color: var(--primary);">Compromiso de Calidad</h4>
+                <div style="display: grid; gap: 1.5rem;">
+                    <div style="display: flex; gap: 1rem;">
+                        <i data-lucide="clock" color="var(--secondary)"></i>
+                        <div>
+                            <div style="font-weight: 700;">Atención Personalizada</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Sesiones de 1 hora para asesoría inicial y 30 min para controles precisos.</div>
                         </div>
                     </div>
-                    <div class="calendar-grid" id="calendar-grid">
+                    <div style="display: flex; gap: 1rem;">
+                        <i data-lucide="send" color="var(--secondary)"></i>
+                        <div>
+                            <div style="font-weight: 700;">Entrega Rápida</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Recibe tu plan de alimentación personalizado en un máximo de 72 horas.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 style="text-align: center; margin-bottom: 3rem; color: var(--primary);">Planes y Tarifas</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            <div class="price-card">
+                <span class="tag">Presencial</span>
+                <h3>Asesoría Inicial</h3>
+                <div style="font-size: 2.5rem; font-weight: 800; margin: 1rem 0;">$30.000</div>
+                <ul style="list-style: none; font-size: 0.9rem; color: var(--text-muted); display: grid; gap: 0.5rem; margin-bottom: 2rem;">
+                    <li>✓ Evaluación antropométrica</li>
+                    <li>✓ Educación alimentaria</li>
+                    <li>✓ Plan 100% personalizado</li>
+                </ul>
+            </div>
+            <div class="price-card" style="border: 2px solid var(--secondary);">
+                <span class="tag" style="background: var(--secondary); color: white;">Más Popular</span>
+                <h3>Asesoría Online</h3>
+                <div style="font-size: 2.5rem; font-weight: 800; margin: 1rem 0;">$25.000</div>
+                <ul style="list-style: none; font-size: 0.9rem; color: var(--text-muted); display: grid; gap: 0.5rem; margin-bottom: 2rem;">
+                    <li>✓ Videollamada (Meet/Zoom)</li>
+                    <li>✓ Seguimiento por WhatsApp</li>
+                    <li>✓ Plan digital inmediato</li>
+                </ul>
+            </div>
+            <div class="price-card">
+                <span class="tag">Ahorro</span>
+                <h3>Pack 3 Controles</h3>
+                <div style="font-size: 2.5rem; font-weight: 800; margin: 1rem 0;">$50.000</div>
+                <ul style="list-style: none; font-size: 0.9rem; color: var(--text-muted); display: grid; gap: 0.5rem; margin-bottom: 2rem;">
+                    <li>✓ 3 Sesiones de seguimiento</li>
+                    <li>✓ Ajustes de plan incluidos</li>
+                    <li>✓ Ideal para metas largas</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="booking-section">
+        <div class="booking-container">
+            <h2 style="text-align: center; margin-bottom: 3rem; color: var(--primary);">Agenda tu Sesión</h2>
+            
+            <div class="booking-step">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="calendar"></i> 1. Selecciona el Día
+                </h3>
+                <div class="calendar-container" style="box-shadow: none; padding: 0; background: none; border: none;">
+                    <div class="calendar-header" style="background: var(--bg-main); padding: 1rem; border-radius: 15px;">
+                        <h4 id="current-month" style="margin: 0;">Abril 2024</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" id="prev-month" style="padding: 0.5rem;"><i data-lucide="chevron-left"></i></button>
+                            <button class="btn" id="next-month" style="padding: 0.5rem;"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid" style="margin-top: 1rem;">
                         <div class="day-name">LU</div><div class="day-name">MA</div><div class="day-name">MI</div>
                         <div class="day-name">JU</div><div class="day-name">VI</div><div class="day-name">SA</div><div class="day-name">DO</div>
                     </div>
                 </div>
             </div>
 
-            <div class="booking-step">
-                <h3>2. Selecciona la Hora</h3>
+            <div class="booking-step" style="margin-top: 3rem;">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="clock"></i> 2. Selecciona la Hora
+                </h3>
                 <div class="time-grid" id="time-grid">
                     <!-- Los botones de hora se generarán dinámicamente -->
                 </div>
             </div>
 
-            <div style="margin-top: 2rem;">
-                <button class="btn btn-primary" id="request-booking" style="width: 100%; padding: 1rem;">
-                    Continuar con la reserva
+            <div style="margin-top: 3rem; text-align: center;">
+                <button class="btn btn-primary" id="request-booking" style="width: 100%; max-width: 400px; padding: 1.5rem; font-size: 1.2rem; border-radius: 100px;">
+                    Reservar mi cupo ahora <i data-lucide="arrow-right" style="vertical-align: middle; margin-left: 10px;"></i>
                 </button>
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Recibirás un mensaje de confirmación por WhatsApp tras agendar.
+                </p>
             </div>
         </div>
-    </div>
+    </section>
+
+    <footer style="padding: 4rem 1rem; text-align: center; border-top: 1px solid #eee; margin-top: 4rem;">
+        <div class="prof-avatar" style="width: 60px; height: 60px; font-size: 1.5rem; margin-bottom: 1rem;">AS</div>
+        <h3 style="color: var(--primary);">Alexandra Salazar</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Nutricionista Especialista</p>
+        <div style="display: flex; justify-content: center; gap: 1.5rem;">
+            <a href="#" style="color: var(--secondary);"><i data-lucide="instagram"></i></a>
+            <a href="#" style="color: var(--secondary);"><i data-lucide="youtube"></i></a>
+            <a href="#" style="color: var(--secondary);"><i data-lucide="message-circle"></i></a>
+        </div>
+        <p style="margin-top: 2rem; font-size: 0.75rem; color: #cbd5e1;">&copy; 2024 OptimizateNutri. Todos los derechos reservados.</p>
+    </footer>
 
     <!-- Booking Modal -->
     <div class="modal-overlay" id="booking-modal">
