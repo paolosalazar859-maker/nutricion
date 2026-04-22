@@ -20,11 +20,10 @@
     <div id="welcome-screen" class="welcome-screen">
         <div class="welcome-content">
             <div class="welcome-hero">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🥦</div>
-                <h1>Eleva tu Consulta al Siguiente Nivel</h1>
-                <p>La plataforma integral para nutricionistas que buscan profesionalismo, eficiencia y resultados basados en datos.</p>
+                <h1>Nutrición <span>consciente</span> y resultados Reales.</h1>
+                <p>No es una dieta, es un estilo de vida. Te acompaño en el proceso de mejorar tu relación con la comida y alcanzar tus objetivos de forma sostenible.</p>
                 <button class="btn btn-start" onclick="enterApp()">
-                    Comenzar Consulta <i data-lucide="chevron-right" style="vertical-align: middle; margin-left: 5px;"></i>
+                    Comenzar Consulta <i data-lucide="arrow-right" style="vertical-align: middle; margin-left: 5px;"></i>
                 </button>
             </div>
             <div class="welcome-features">
@@ -69,6 +68,10 @@
             <li class="nav-item" data-view="availability-view">
                 <i data-lucide="calendar-days"></i>
                 Disponibilidad
+            </li>
+            <li class="nav-item" data-view="services-view">
+                <i data-lucide="briefcase"></i>
+                Mis Servicios
             </li>
             <li class="nav-item" data-view="profile-view">
                 <i data-lucide="settings"></i>
@@ -244,6 +247,73 @@
                     <h4>Pacientes Agendados</h4>
                     <div id="plan-appointments-list" style="margin-top: 1rem;">
                         <p class="empty-msg">Sin citas en este día.</p>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- Cierre de availability-view -->
+
+        <!-- Services & Pricing View (New section from images) -->
+        <div id="services-view" class="view-section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Pricing Card -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="tags" color="var(--secondary)"></i> Tarifas y Modalidades
+                    </h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="padding: 1rem; background: rgba(255,255,255,0.5); border-radius: 15px; border-left: 4px solid var(--secondary);">
+                            <h4 style="color: var(--primary);">Asesoría Nutricional</h4>
+                            <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.9rem; display: grid; gap: 0.5rem;">
+                                <li style="display: flex; justify-content: space-between;"><span>💻 Online</span> <b>$25.000</b></li>
+                                <li style="display: flex; justify-content: space-between;"><span>🏢 Presencial</span> <b>$30.000</b></li>
+                                <li style="display: flex; justify-content: space-between;"><span>🏠 Domicilio</span> <b>$38.000</b></li>
+                            </ul>
+                        </div>
+                        <div style="padding: 1rem; background: rgba(255,255,255,0.5); border-radius: 15px; border-left: 4px solid var(--primary-light);">
+                            <h4 style="color: var(--primary);">Control de Seguimiento</h4>
+                            <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.9rem; display: grid; gap: 0.5rem;">
+                                <li style="display: flex; justify-content: space-between;"><span>💻 Online</span> <b>$18.000</b></li>
+                                <li style="display: flex; justify-content: space-between;"><span>🏢 Presencial</span> <b>$22.000</b></li>
+                                <li style="display: flex; justify-content: space-between;"><span>🏠 Domicilio</span> <b>$28.000</b></li>
+                            </ul>
+                        </div>
+                        <div style="padding: 1rem; background: var(--primary); color: white; border-radius: 15px;">
+                            <h4 style="color: white;">Programas de Ahorro</h4>
+                            <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.9rem; display: grid; gap: 0.5rem;">
+                                <li style="display: flex; justify-content: space-between;"><span>📦 Pack 3 Controles Online</span> <b>$50.000</b></li>
+                                <li style="display: flex; justify-content: space-between;"><span>📦 Pack 3 Controles Presencial</span> <b>$60.000</b></li>
+                            </ul>
+                            <p style="font-size: 0.75rem; margin-top: 0.8rem; opacity: 0.9;">* Ideal para lograr resultados más sostenibles.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Methodology Card -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="book-open" color="var(--primary)"></i> Mi Metodología
+                    </h2>
+                    <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">¿En qué consiste?</h4>
+                            <p>No solo te digo qué comer, sino por qué. Aprenderás a leer etiquetas, entender porciones y mejorar tu relación con la comida.</p>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">Tiempos de Atención</h4>
+                            <ul style="list-style: none; display: grid; gap: 0.5rem;">
+                                <li>⏱️ <b>Asesoría:</b> 1 hora aproximadamente.</li>
+                                <li>⏱️ <b>Control:</b> 30 minutos (más preciso).</li>
+                                <li>📧 <b>Entrega de Plan:</b> Máximo 72 horas después.</li>
+                            </ul>
+                        </div>
+                        <div style="padding: 1rem; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px;">
+                            <h4 style="color: #92400e; font-size: 0.85rem; margin-bottom: 0.5rem;">REQUISITOS SESIÓN ONLINE</h4>
+                            <ul style="font-size: 0.85rem; color: #78350f; padding-left: 1.2rem;">
+                                <li>Peso en ayunas (luego de ir al baño).</li>
+                                <li>Circunferencia de cintura (parte más angosta).</li>
+                                <li>Talla (Altura).</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

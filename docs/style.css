@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #6b21a8; /* Morado Vibrante */
-    --primary-light: #a855f7; /* Lavanda Brillante */
-    --secondary: #4c1d95; /* Violeta Profundo */
-    --accent: #d8b4fe; /* Lila Pálido */
-    --bg-main: #f8f6ff;
+    --primary: #1e1b4b; /* Deep Indigo (Inspired by Siria Lopez) */
+    --primary-light: #4338ca; 
+    --secondary: #db2777; /* Rose/Pink Accent */
+    --accent: #fbcfe8; /* Soft Blush */
+    --bg-main: #fdfaff; /* Clean, slightly tinted white */
     --bg-sidebar: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.4);
-    --text-main: #2e1065; /* Morado Oscuro para texto */
-    --text-muted: #7e22ce; /* Morado medio */
-    --glass-border: rgba(168, 85, 247, 0.2);
-    --shadow-premium: 0 25px 50px -12px rgba(107, 33, 168, 0.15);
-    --glow: 0 0 20px rgba(168, 85, 247, 0.2);
-    --radius: 24px;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --text-main: #0f172a; 
+    --text-muted: #64748b;
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --shadow-premium: 0 20px 40px -10px rgba(30, 27, 75, 0.1);
+    --glow: 0 0 30px rgba(219, 39, 119, 0.15);
+    --radius: 28px;
 }
 
 * {
@@ -29,7 +29,8 @@ body {
     display: flex;
     min-height: 100vh;
     overflow-x: hidden;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* Sidebar */
@@ -145,11 +146,19 @@ main {
 /* Glass Card */
 .glass-card {
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
+    padding: 2rem;
+    box-shadow: var(--shadow-premium);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--secondary);
+    box-shadow: 0 30px 60px -12px rgba(30, 27, 75, 0.15);
 }
 
 /* Calendar Component */
@@ -507,25 +516,24 @@ main {
 }
 
 @keyframes welcomeEnter {
-    from { opacity: 0; transform: translateY(50px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .welcome-hero h1 {
-    font-size: 5rem;
-    line-height: 0.9;
-    margin-bottom: 2.5rem;
-    font-weight: 900;
-    color: var(--text-main);
-    letter-spacing: -0.06em;
+    font-size: 5.5rem;
+    line-height: 1;
+    margin-bottom: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.05em;
 }
 
 .welcome-hero h1 span {
     display: block;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--secondary));
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 15px rgba(107, 33, 168, 0.3));
 }
 
 .welcome-hero p {
@@ -644,8 +652,8 @@ main {
 .stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
 .stat-icon.blue { background: rgba(34, 211, 238, 0.1); color: #0ea5e9; }
 
-.stat-info span { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-.stat-info h2 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem; }
+.stat-info span { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-info h2 { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-top: 0.2rem; }
 
 /* Quick Actions */
 .quick-actions {

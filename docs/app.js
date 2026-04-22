@@ -11,16 +11,16 @@ let state = {
     selectedPlanningDates: [],
     appointments: [],
     profile: JSON.parse(localStorage.getItem('nutriProfile')) || {
-        id: "", // ID público único
-        name: "Paolo Salazar",
-        specialty: "Nutrición Deportiva",
-        email: "contacto@paolo.cl",
-        whatsapp: "+56912345678",
-        whatsapp: "+56912345678",
-        price: "35000",
-        bio: "Experto en nutrición deportiva y planes personalizados.",
+        id: "", 
+        name: "Alexandra Salazar",
+        specialty: "Nutricionista - Estilo de Vida Saludable",
+        email: "contacto@nutrisalazar.cl",
+        whatsapp: "+56972382278",
+        price: "30000",
+        bio: "Especialista en mejorar tu relación con la comida. 8+ años de experiencia transformando hábitos de forma sostenible.",
+        address: "Consulta Presencial / Online",
         availability: {
-            weekly: Array(7).fill({m: 'office', s: '09:00', e: '14:00'}),
+            weekly: Array(7).fill({m: 'office', s: '09:00', e: '18:00'}),
             blocked: "",
             overrides: {}
         }
@@ -404,43 +404,46 @@ function renderAvailabilityConfig() {
 }
 
 // --- Dynamic Link ---
-window.generateBookingLink = () => {
+window.generateBookingLink = async () => {
     const p = state.profile;
     if (!p.whatsapp) { alert("Por favor, ingresa tu número de WhatsApp."); return; }
     
     const mapping = { off: '0', online: '1', office: '2' };
     
-    // Weekly
-    const weeklyData = daysArray().map(i => {
-        const m = document.querySelector(`.avail-mod[data-index="${i}"]`).value;
-        const s = document.querySelector(`.avail-start[data-index="${i}"]`).value.replace(':', '');
-        const e = document.querySelector(`.avail-end[data-index="${i}"]`).value.replace(':', '');
+    // Weekly Schedule Encoding
+    const weeklyData = [0,1,2,3,4,5,6].map(i => {
+        const sel = document.querySelector(`.avail-mod[data-index="${i}"]`);
+        const start = document.querySelector(`.avail-start[data-index="${i}"]`);
+        const end = document.querySelector(`.avail-end[data-index="${i}"]`);
+        
+        const m = sel ? sel.value : (p.availability?.weekly[i]?.m || 'off');
+        const s = (start ? start.value : (p.availability?.weekly[i]?.s || '09:00')).replace(':', '');
+        const e = (end ? end.value : (p.availability?.weekly[i]?.e || '18:00')).replace(':', '');
         return `${mapping[m]}${s}${e}`;
     });
     const schEncoded = weeklyData.join(',');
 
-    // Overrides
-    const overrides = p.availability?.overrides || {};
-    const ovEncoded = Object.entries(overrides).map(([d, val]) => {
-        const dateKey = d.replace(/-/g,'');
-        const s = val.s.replace(':', '');
-        const e = val.e.replace(':', '');
-        return `${dateKey}_${mapping[val.m]}${s}${e}`;
-    }).join(',');
-
-    // Si no tiene ID público, generamos uno y sincronizamos
+    // Sincronizar con Supabase
     if (!state.profile.id) {
-        state.profile.id = 'paolo-' + Math.random().toString(36).substring(2, 9);
+        state.profile.id = 'nutri-' + Math.random().toString(36).substring(2, 9);
         saveProfile();
     }
-
-    // Sincronizar con Supabase antes de generar el link
     await syncPublicConfig();
 
     const baseUrl = `https://paolosalazar859-maker.github.io/nutricion/reserva.html`;
-    const link = `${baseUrl}?u=${state.profile.id}`;
     
-    // Copy to clipboard with visual feedback
+    // Generamos el link con todos los parámetros para asegurar que funcione de inmediato
+    const params = new URLSearchParams({
+        u: state.profile.id,
+        n: p.name,
+        s: p.specialty,
+        wa: p.whatsapp.replace('+', ''),
+        sch: schEncoded
+    });
+
+    const link = `${baseUrl}?${params.toString()}`;
+    
+    // Copy to clipboard
     const dummy = document.createElement('textarea');
     document.body.appendChild(dummy);
     dummy.value = link;
@@ -448,7 +451,7 @@ window.generateBookingLink = () => {
     document.execCommand('copy');
     document.body.removeChild(dummy);
     
-    alert("¡Enlace inteligente copiado! Ahora es mucho más corto y profesional.");
+    alert("¡Enlace de reserva actualizado y copiado al portapapeles!");
 };
 
 async function syncPublicConfig() {

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva tu Hora - OptimizateNutri</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥦</text></svg>">
-    <link rel="stylesheet" href="style.css">
+    <title>Reserva tu Hora - Nutrición Alexandra Salazar</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <link rel="stylesheet" href="style.css?v=8.0">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -57,8 +57,9 @@
             transition: all 0.2s;
         }
         .time-btn:hover {
-            border-color: var(--primary);
-            background: rgba(109, 40, 217, 0.05);
+            border-color: var(--secondary);
+            background: rgba(219, 39, 119, 0.05);
+            transform: scale(1.05);
         }
         .time-btn.active {
             background: var(--primary);
@@ -136,7 +137,10 @@
             transform: translateX(5px);
         }
         .choice-btn i {
-            color: var(--primary);
+            color: var(--secondary);
+            background: var(--bg-main);
+            padding: 10px;
+            border-radius: 12px;
         }
     </style>
 </head>
